@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "The Reactor — lhex systems",
@@ -30,7 +23,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
       </head>
-      <body className={`${inter.variable} antialiased bg-[#0a0a0f] text-white`}>
+      <body className="antialiased bg-[#0a0a0f] text-white" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
         {children}
       </body>
     </html>
