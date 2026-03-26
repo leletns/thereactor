@@ -1,36 +1,176 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# THE REACTOR — lhex systems
+
+**O Sistema Operacional de IA para Empresas do Futuro**
+
+The Reactor is a sovereign AI orchestration platform built by lhex systems. It replaces traditional business functions with intelligent, autonomous AI agents that communicate with each other via a proprietary A2A (Agent-to-Agent) protocol.
+
+---
+
+## Architecture
+
+```
+THE REACTOR
+├── Nucleus (Orchestrator)      — Routes, coordinates, delegates
+├── Finance Agent               — DRE, cash flow, insights
+├── SDR Agent                   — Lead scoring, pipelines, cadences
+├── Marketing Agent             — Copy, campaigns, content
+├── Ops Agent                   — Processes, tasks, automation
+├── Responder Agent             — WhatsApp, multi-channel
+│
+├── A2A Protocol                — Inter-agent communication
+├── MCP Tools                   — 6 specialized tool definitions
+├── Evolution API               — WhatsApp integration
+└── Supabase                    — Persistent storage
+```
+
+## Tech Stack
+
+- **Framework**: Next.js 14 App Router + TypeScript
+- **AI**: Anthropic Claude Sonnet 4.6 (`@anthropic-ai/sdk`)
+- **Database**: Supabase (`@supabase/supabase-js`)
+- **UI**: Tailwind CSS + Radix UI + Framer Motion
+- **Charts**: Recharts
+- **WhatsApp**: Evolution API
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone and Install
+
+```bash
+git clone <repo>
+cd thereactor
+npm install
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` and fill in:
+
+```env
+ANTHROPIC_API_KEY=sk-ant-api03-...
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+EVOLUTION_API_URL=http://localhost:8080
+EVOLUTION_API_KEY=your-key
+```
+
+### 3. Set Up Database
+
+Run the SQL migration in your Supabase project:
+
+```bash
+# Via Supabase CLI:
+supabase db push
+
+# Or manually paste:
+# supabase/migrations/001_reactor_schema.sql
+```
+
+### 4. Start Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Modules
 
-## Learn More
+| Route | Module | Description |
+|-------|---------|-------------|
+| `/` | Landing | Hero page with feature overview |
+| `/nucleus` | Nucleus | Central AI chat with all agents |
+| `/finance` | Financeiro | Financial analysis & charts |
+| `/sdr` | SDR | Lead pipeline & kanban |
+| `/marketing` | Marketing | Campaigns & copy generator |
+| `/ops` | Operações | Tasks & process optimizer |
+| `/agents` | Agent Studio | Configure & monitor agents |
+| `/channels` | Canais | WhatsApp & integrations |
 
-To learn more about Next.js, take a look at the following resources:
+## API Endpoints
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Method | Route | Description |
+|--------|-------|-------------|
+| `POST` | `/api/chat` | Stream AI responses from any agent |
+| `GET` | `/api/agents` | List all agents and their status |
+| `POST` | `/api/agents` | Update agent status |
+| `POST` | `/api/webhook/evolution` | Receive WhatsApp messages |
+| `GET` | `/api/health` | System health check |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## A2A Protocol
 
-## Deploy on Vercel
+Agents communicate via typed messages:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```typescript
+interface A2AMessage {
+  id: string;
+  from: AgentRole;
+  to: AgentRole | 'broadcast';
+  type: 'request' | 'response' | 'event' | 'delegation';
+  payload: {
+    task?: string;
+    result?: string;
+    data?: unknown;
+    priority?: 'low' | 'medium' | 'high' | 'critical';
+  };
+  timestamp: string;
+  sessionId: string;
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## MCP Tools
+
+6 specialized tools available to agents:
+
+- `analyze_financials` — Financial analysis with recommendations
+- `score_lead` — Lead scoring 0-100 with BANT/MEDDIC
+- `generate_marketing_copy` — Multi-channel copy variants
+- `optimize_process` — Process optimization with ROI
+- `send_whatsapp` — Send messages via Evolution API
+- `query_database` — Natural language database queries
+
+## WhatsApp Integration
+
+Configure Evolution API and set webhook to:
+```
+POST /api/webhook/evolution
+```
+
+The Responder agent handles all incoming messages automatically.
+
+---
+
+## Production Deployment
+
+### Vercel
+
+```bash
+vercel --prod
+```
+
+Set environment variables in Vercel dashboard.
+
+### Docker
+
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY . .
+RUN npm ci && npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+---
+
+## License
+
+Proprietary — lhex systems &copy; 2025
