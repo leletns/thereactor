@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { orchestrator } from "@/lib/nucleus/orchestrator";
 import { AgentRole } from "@/lib/nucleus/registry";
 import { agentRegistry } from "@/lib/nucleus/registry";
+import { getDemoResponse } from "@/lib/demo-responses";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -24,13 +25,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { error: "ANTHROPIC_API_KEY is not configured" },
-        { status: 503 }
-      );
-    }
-
     const validRoles: AgentRole[] = [
       "orchestrator",
       "finance",
@@ -40,7 +34,37 @@ export async function POST(request: NextRequest) {
       "responder",
     ];
 
-    const resolvedRole = validRoles.includes(agentRole) ? agentRole : "orchestrator";
+    const resolvedRole = validRoles.includes(agentRole)
+      ? agentRole
+      : "orchestrator";
+
+    // DEMO MODE: when no API key, stream a realistic mock response
+    if (!process.env.ANTHROPIC_API_KEY) {
+      const lastMessage = messages[messages.length - 1]?.content ?? "";
+      const demoResponse = getDemoResponse(resolvedRole, lastMessage);
+      const encoder = new TextEncoder();
+      const readableStream = new ReadableStream({
+        async start(controller) {
+          for (const char of demoResponse) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ text: char })}\n\n`)
+            );
+            await new Promise((r) => setTimeout(r, 12));
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        },
+      });
+      return new Response(readableStream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+          "X-Agent-Role": resolvedRole,
+          "X-Demo-Mode": "true",
+        },
+      });
+    }
 
     // Update agent status to processing
     const agent = agentRegistry.getByRole(resolvedRole);
@@ -74,7 +98,6 @@ export async function POST(request: NextRequest) {
           });
           controller.enqueue(encoder.encode(`data: ${errMsg}\n\n`));
         } finally {
-          // Restore agent status
           if (agent) {
             agentRegistry.updateStatus(agent.id, "online");
             agentRegistry.incrementMessages(agent.id);
