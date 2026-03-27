@@ -24,59 +24,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const LIVE_EVENTS = [
-  { id: 1, type: "lead", message: "Amanda Torres abriu sua proposta no LinkedIn", time: "agora", color: "#00f5ff" },
-  { id: 2, type: "followup", message: "Follow-up #4 enviado para Ricardo Mendes", time: "12s", color: "#00ff88" },
-  { id: 3, type: "alert", message: "Felipe Santos visitou a pagina de precos 3x hoje", time: "45s", color: "#fbbf24" },
-  { id: 4, type: "ai", message: "IA: Pedro Lima — score subiu de 71 para 88 (evento detectado)", time: "1m", color: "#8b5cf6" },
-  { id: 5, type: "whatsapp", message: "Joao Silva respondeu no WhatsApp — roteado ao SDR Agent", time: "2m", color: "#00ff88" },
-  { id: 6, type: "lead", message: "Novo lead detectado: Carla Mendes visitou 4 paginas", time: "3m", color: "#00f5ff" },
-  { id: 7, type: "ai", message: "IA: Momento ideal para ligar para Ana Rodrigues (horario 10h-11h)", time: "4m", color: "#8b5cf6" },
+  { id: 1, type: "lead",     message: "Amanda Torres abriu sua proposta no LinkedIn",             time: "agora", color: "#5FFFD7" },
+  { id: 2, type: "followup", message: "Follow-up #4 enviado para Ricardo Mendes",                 time: "12s",   color: "#5FFFD7" },
+  { id: 3, type: "alert",    message: "Felipe Santos visitou a pagina de precos 3x hoje",         time: "45s",   color: "#fbbf24" },
+  { id: 4, type: "ai",       message: "Pedro Lima — score subiu de 71 para 88 (evento detectado)", time: "1m",   color: "#7B2FBE" },
+  { id: 5, type: "whatsapp", message: "Joao Silva respondeu no WhatsApp — roteado para vendas",   time: "2m",    color: "#5FFFD7" },
+  { id: 6, type: "lead",     message: "Novo lead: Carla Mendes visitou 4 paginas do site",        time: "3m",    color: "#5FFFD7" },
+  { id: 7, type: "ai",       message: "Momento ideal para ligar para Ana Rodrigues (10h-11h)",    time: "4m",    color: "#7B2FBE" },
 ];
 
 const FEATURES = [
   {
     icon: Bell,
-    color: "#00f5ff",
+    color: "#5FFFD7",
     title: "Alertas em Tempo Real",
-    description: "Receba notificacao instantanea quando um lead abre seu email, visita seu site ou interage com sua proposta.",
+    description: "Notificacao instantanea quando um lead abre seu email, visita seu site ou interage com sua proposta.",
   },
   {
     icon: Brain,
-    color: "#8b5cf6",
-    title: "IA no Contexto Certo",
-    description: "O Reactor analisa o lead e entrega o insight perfeito diretamente no Chrome enquanto voce navega no LinkedIn ou CRM.",
+    color: "#7B2FBE",
+    title: "Contexto Inteligente",
+    description: "O Reactor analisa o lead e entrega o insight exato diretamente no Chrome enquanto voce navega no LinkedIn ou CRM.",
   },
   {
     icon: MessageSquare,
-    color: "#00ff88",
+    color: "#5FFFD7",
     title: "WhatsApp Integrado",
-    description: "Envie mensagens de follow-up diretamente pelo Chrome sem abrir o WhatsApp. Evolution API no background.",
+    description: "Envie mensagens de follow-up pelo Chrome sem abrir o WhatsApp. Evolution API rodando no background.",
   },
   {
     icon: Activity,
     color: "#fbbf24",
-    title: "Follow-up Automatico",
-    description: "Extensao detecta quando e o momento certo (8 tentativas) e sugere a proxima acao com script pronto.",
+    title: "Cadencia de Follow-up",
+    description: "Detecta o momento certo (ate 8 tentativas) e sugere a proxima acao com script de abordagem pronto.",
   },
   {
     icon: Database,
     color: "#ff6b35",
-    title: "Sincroniza com o Reactor",
-    description: "Toda interacao vira dado no Reactor via WebSocket. Historico completo, score atualizado, CRM sempre vivo.",
+    title: "Sincronizado com o Reactor",
+    description: "Toda interacao vira dado via WebSocket. Historico completo, score atualizado, CRM sempre vivo.",
   },
   {
     icon: Shield,
-    color: "#00f5ff",
+    color: "#5FFFD7",
     title: "Dados Soberanos",
     description: "Seus dados ficam no seu Supabase. Zero terceiros. Criptografia end-to-end entre extensao e Reactor.",
   },
 ];
 
 const WS_STEPS = [
-  { label: "Chrome detecta evento", detail: "Lead abre email / visita site / interage", color: "#00f5ff" },
-  { label: "Extensao envia via WebSocket", detail: "ws://reactor.seudominio.com/events", color: "#8b5cf6" },
-  { label: "Reactor processa com IA", detail: "SDR Agent analisa contexto e historia", color: "#fbbf24" },
-  { label: "Notificacao instantanea", detail: "Popup com insight + proxima acao", color: "#00ff88" },
+  { label: "Chrome detecta evento",       detail: "Lead abre email / visita site / interage",  color: "#5FFFD7" },
+  { label: "Extensao envia via WebSocket", detail: "ws://reactor.seudominio.com/events",       color: "#7B2FBE" },
+  { label: "Reactor processa",            detail: "Agente de vendas analisa contexto e historico", color: "#fbbf24" },
+  { label: "Notificacao instantanea",     detail: "Popup com insight e proxima acao",          color: "#5FFFD7" },
 ];
 
 function LiveFeed() {
@@ -200,19 +200,19 @@ export default function ExtensionPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-xl bg-reactor-cyan/15 border border-reactor-cyan/30 flex items-center justify-center">
+            <div className="h-10 w-10 rounded bg-reactor-cyan/10 border border-reactor-cyan/20 flex items-center justify-center">
               <Puzzle className="h-5 w-5 text-reactor-cyan" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Reactor CRM Extension</h2>
-              <p className="text-sm text-white/40">Chrome Extension + WebSocket em tempo real</p>
+              <h2 className="text-xl font-semibold" style={{ color: "var(--reactor-text)" }}>Reactor CRM Extension</h2>
+              <p className="text-sm" style={{ color: "var(--reactor-text-muted)" }}>Chrome Extension + WebSocket em tempo real</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-reactor-green/10 border border-reactor-green/20">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-reactor-green/8 border border-reactor-green/15">
             <Wifi className="h-3.5 w-3.5 text-reactor-green" />
-            <span className="text-xs text-reactor-green font-medium">WebSocket {wsConnected ? "Ativo" : "Inativo"}</span>
+            <span className="text-xs text-reactor-green font-medium font-mono">WebSocket {wsConnected ? "Ativo" : "Inativo"}</span>
           </div>
           <Button size="sm">
             <Download className="h-4 w-4 mr-2" />
@@ -304,10 +304,10 @@ export default function ExtensionPage() {
       {/* Stats bar */}
       <div className="grid grid-cols-4 gap-3">
         {[
-          { label: "Tempo medio de resposta a lead", value: "< 2min", icon: Clock, color: "#00f5ff" },
-          { label: "Aumento na taxa de conversao", value: "+41%", icon: TrendingUp, color: "#00ff88" },
-          { label: "Follow-ups automatizados/mes", value: "847", icon: CheckCircle2, color: "#8b5cf6" },
-          { label: "Leads monitorados em tempo real", value: "Ilimitado", icon: Users, color: "#fbbf24" },
+          { label: "Tempo medio de resposta a lead", value: "< 2min",    icon: Clock,        color: "#5FFFD7" },
+          { label: "Aumento na taxa de conversao",   value: "+41%",      icon: TrendingUp,   color: "#5FFFD7" },
+          { label: "Follow-ups automatizados/mes",   value: "847",       icon: CheckCircle2, color: "#7B2FBE" },
+          { label: "Leads monitorados em tempo real", value: "Ilimitado", icon: Users,       color: "#fbbf24" },
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -322,15 +322,15 @@ export default function ExtensionPage() {
 
       {/* CTA */}
       <div
-        className="rounded-2xl p-6 border border-reactor-cyan/20 text-center relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, rgba(0,245,255,0.05) 0%, rgba(139,92,246,0.05) 100%)" }}
+        className="rounded p-6 border border-reactor-cyan/15 text-center relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, rgba(95,255,215,0.04) 0%, rgba(123,47,190,0.04) 100%)" }}
       >
         <div className="relative z-10">
           <Puzzle className="h-8 w-8 text-reactor-cyan mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-white mb-2">
+          <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--reactor-text)" }}>
             Reactor CRM — Disponivel em Breve na Chrome Web Store
           </h3>
-          <p className="text-sm text-white/50 mb-4 max-w-md mx-auto">
+          <p className="text-sm mb-4 max-w-md mx-auto" style={{ color: "var(--reactor-text-2)" }}>
             A extensao que conecta o poder do Reactor diretamente no seu navegador.
             Nunca mais perca um follow-up ou um lead quente.
           </p>
