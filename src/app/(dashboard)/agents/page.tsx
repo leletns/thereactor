@@ -146,7 +146,7 @@ export default function AgentsPage() {
                       { label: "Mensagens processadas", value: selectedAgent.messagesHandled.toLocaleString("pt-BR") },
                       { label: "Uptime", value: selectedAgent.uptime },
                       { label: "Role", value: selectedAgent.role },
-                      { label: "Model", value: "claude-sonnet-4-6" },
+                      { label: "Engine", value: "Reactor Core v1" },
                     ].map((stat) => (
                       <div key={stat.label} className="flex items-center justify-between">
                         <span className="text-xs text-white/40">{stat.label}</span>

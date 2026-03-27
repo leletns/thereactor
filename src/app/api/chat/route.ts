@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       : "orchestrator";
 
     // DEMO MODE: when no API key, stream a realistic mock response
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       const lastMessage = messages[messages.length - 1]?.content ?? "";
       const demoResponse = getDemoResponse(resolvedRole, lastMessage);
       const encoder = new TextEncoder();
@@ -79,16 +79,13 @@ export async function POST(request: NextRequest) {
     const readableStream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              const data = JSON.stringify({ text: event.delta.text });
+          for await (const chunk of stream) {
+            const text = chunk.choices[0]?.delta?.content ?? "";
+            if (text) {
+              const data = JSON.stringify({ text });
               controller.enqueue(encoder.encode(`data: ${data}\n\n`));
             }
-
-            if (event.type === "message_stop") {
+            if (chunk.choices[0]?.finish_reason === "stop") {
               controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             }
           }

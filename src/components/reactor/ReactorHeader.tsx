@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Zap, Activity, Terminal } from "lucide-react";
+import { Bell, Zap, Activity, Terminal, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export function ReactorHeader() {
   const [commandValue, setCommandValue] = useState("");
   const [notifications] = useState(MOCK_NOTIFICATIONS);
 
+  const { theme, setTheme } = useTheme();
   const moduleName = MODULE_NAMES[pathname] ?? "The Reactor";
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -86,6 +88,17 @@ export function ReactorHeader() {
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
+          {/* Theme toggle */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="text-white/40 hover:text-reactor-cyan"
+            title="Alternar tema"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+
           {/* Quick command */}
           <Button
             variant="ghost"

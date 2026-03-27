@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* === DARK MODE (default) === */
+  :root,
+  .dark {
     --background: 230 20% 4%;
     --foreground: 210 40% 98%;
     --card: 230 20% 7%;
@@ -20,6 +22,42 @@
     --accent: 158 100% 50%;
     --accent-foreground: 230 20% 4%;
     --radius: 0.75rem;
+
+    --reactor-bg: #0a0a0f;
+    --reactor-surface: #0f0f1a;
+    --reactor-card-bg: #141428;
+    --reactor-border-color: #1e1e3a;
+    --reactor-text: rgba(255,255,255,0.85);
+    --reactor-text-muted: rgba(255,255,255,0.4);
+    --reactor-sidebar-bg: #0f0f1a;
+  }
+
+  /* === LIGHT MODE === */
+  .light {
+    --background: 220 20% 97%;
+    --foreground: 220 25% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 10%;
+    --border: 220 15% 88%;
+    --input: 220 15% 93%;
+    --ring: 185 80% 40%;
+    --primary: 185 80% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 93%;
+    --secondary-foreground: 220 25% 20%;
+    --muted: 220 15% 93%;
+    --muted-foreground: 220 15% 45%;
+    --accent: 158 70% 38%;
+    --accent-foreground: 0 0% 100%;
+    --radius: 0.75rem;
+
+    --reactor-bg: #f4f6fb;
+    --reactor-surface: #ffffff;
+    --reactor-card-bg: #ffffff;
+    --reactor-border-color: #dde3f0;
+    --reactor-text: rgba(20,25,50,0.9);
+    --reactor-text-muted: rgba(20,25,50,0.45);
+    --reactor-sidebar-bg: #ffffff;
   }
 }
 
@@ -29,8 +67,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-color: #0a0a0f;
+    background-color: var(--reactor-bg);
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   ::selection {
     background-color: rgba(0, 245, 255, 0.2);
@@ -79,6 +118,21 @@
   .reactor-card:hover {
     border-color: rgba(0, 245, 255, 0.25);
     box-shadow: 0 0 30px rgba(0, 245, 255, 0.08);
+  }
+  .light .reactor-card {
+    background: #ffffff;
+    border: 1px solid #dde3f0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .light .reactor-card:hover {
+    border-color: rgba(0, 180, 200, 0.4);
+    box-shadow: 0 4px 16px rgba(0,180,200,0.1);
+  }
+  .light .grid-bg {
+    background-image:
+      linear-gradient(rgba(0, 100, 150, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 100, 150, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
   .grid-bg {
     background-image:

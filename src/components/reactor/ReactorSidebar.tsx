@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Settings,
   Zap,
+  Puzzle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -33,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Operações", href: "/ops", icon: Settings2 },
   { label: "Agent Studio", href: "/agents", icon: Bot },
   { label: "Canais", href: "/channels", icon: MessageSquare },
+  { label: "CRM Extension", href: "/extension", icon: Puzzle, badge: "NEW" },
 ];
 
 export function ReactorSidebar() {

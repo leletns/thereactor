@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "The Reactor — lhex systems",
@@ -19,12 +20,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
       </head>
-      <body className="antialiased bg-[#0a0a0f] text-white" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
-        {children}
+      <body
+        className="antialiased"
+        style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+      >
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
