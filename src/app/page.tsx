@@ -345,7 +345,7 @@ export default function LandingPage() {
             Pronto para ativar o Reactor?
           </h2>
           <p className="text-white/40 text-lg mb-8">
-            Acesse agora e comece a usar seus agentes de IA. Configure o Anthropic API key e inicie em minutos.
+            Acesse agora e ative seus agentes. Em minutos sua empresa opera com inteligencia autônoma.
           </p>
           <Link href="/nucleus">
             <Button size="xl" className="mx-auto">
@@ -386,7 +386,7 @@ export default function LandingPage() {
             ))}
           </div>
           <p className="text-xs text-white/20">
-            &copy; 2025 lhex systems. Powered by Claude.
+            &copy; 2025 lhex systems. Todos os direitos reservados.
           </p>
         </div>
       </footer>

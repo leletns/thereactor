@@ -26,7 +26,7 @@ THE REACTOR
 ## Tech Stack
 
 - **Framework**: Next.js 14 App Router + TypeScript
-- **AI**: Anthropic Claude Sonnet 4.6 (`@anthropic-ai/sdk`)
+- **AI**: Reactor Intelligence Engine (`groq-sdk`)
 - **Database**: Supabase (`@supabase/supabase-js`)
 - **UI**: Tailwind CSS + Radix UI + Framer Motion
 - **Charts**: Recharts
