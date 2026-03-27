@@ -2,99 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    L.H.E.X Systems — Design System
-   The Reactor
-   ─────────────────────────────────────────────────────────
-   Primary:    #5FFFD7  (mint-green glow)
-   Jabuticaba: #4A0E4E  (deep purple brand)
-   Background: #000000  (black sovereign)
-   Font:       Montserrat + JetBrains Mono
-   Radius:     4px industrial
-═══════════════════════════════════════════════════════════ */
+   The Reactor v2
+   ─────────────────────────────────────────────────────
+   Primário:    #5FFFD7  (mint-green)
+   Jabuticaba:  #4A0E4E  (deep purple)
+   Dark bg:     #0d1117  (confortável, não cansa a vista)
+   Light bg:    #f6f8fa  (profissional, não amador)
+   Fonte:       Montserrat + JetBrains Mono
+   Radius:      4px industrial
+═══════════════════════════════════════════════════════ */
 
 @layer base {
-  /* ─────────────────── DARK (padrão) ─────────────────── */
-  :root,
-  .dark {
-    --background:           0 0% 0%;
-    --foreground:           160 100% 95%;
-    --card:                 240 10% 4%;
-    --card-foreground:      160 100% 95%;
-    --border:               240 8% 10%;
-    --input:                240 8% 8%;
+  /* ─── DARK MODE ─── */
+  :root, .dark {
+    --background:           220 15% 7%;
+    --foreground:           210 30% 92%;
+    --card:                 222 15% 10%;
+    --card-foreground:      210 30% 92%;
+    --border:               220 12% 14%;
+    --input:                220 12% 12%;
     --ring:                 160 100% 68%;
     --primary:              160 100% 68%;
     --primary-foreground:   0 0% 0%;
-    --secondary:            240 8% 8%;
-    --secondary-foreground: 160 30% 85%;
-    --muted:                240 8% 8%;
-    --muted-foreground:     240 8% 50%;
-    --accent:               275 80% 45%;
+    --secondary:            220 12% 12%;
+    --secondary-foreground: 210 20% 75%;
+    --muted:                220 12% 12%;
+    --muted-foreground:     220 10% 45%;
+    --accent:               270 70% 45%;
     --accent-foreground:    0 0% 100%;
     --radius:               4px;
 
-    --reactor-bg:              #000000;
-    --reactor-surface:         #0a0a0c;
-    --reactor-card-bg:         #0f0f12;
-    --reactor-border-color:    rgba(255,255,255,0.06);
-    --reactor-border-solid:    #1a1a20;
-    --reactor-text:            rgba(255,255,255,0.92);
-    --reactor-text-2:          rgba(255,255,255,0.55);
-    --reactor-text-muted:      #888899;
-    --reactor-sidebar-bg:      #0a0a0c;
-    --reactor-header-bg:       rgba(0,0,0,0.92);
-    --reactor-nav-hover:       rgba(95,255,215,0.05);
+    /* — cores de layout — */
+    --reactor-bg:              #0d1117;
+    --reactor-surface:         #161b22;
+    --reactor-card-bg:         #1c2128;
+    --reactor-border-color:    rgba(255,255,255,0.07);
+    --reactor-border-solid:    #2a3040;
+    --reactor-text:            rgba(230,236,245,0.92);
+    --reactor-text-2:          rgba(180,192,210,0.65);
+    --reactor-text-muted:      rgba(140,155,175,0.48);
+    --reactor-sidebar-bg:      #131920;
+    --reactor-header-bg:       rgba(13,17,23,0.92);
+    --reactor-nav-hover:       rgba(255,255,255,0.05);
     --reactor-nav-active-bg:   rgba(95,255,215,0.07);
     --reactor-nav-active-border: rgba(95,255,215,0.18);
-    --reactor-scrollbar-track: #0a0a0c;
-    --reactor-scrollbar-thumb: rgba(255,255,255,0.08);
+    --reactor-scrollbar-track: #161b22;
+    --reactor-scrollbar-thumb: rgba(255,255,255,0.1);
     --lhex-green:              #5FFFD7;
     --lhex-purple:             #7B2FBE;
-    --lhex-jabu:               #4A0E4E;
   }
 
-  /* ─────────────────── LIGHT ─────────────────── */
+  /* ─── LIGHT MODE — profissional, não amador ─── */
   .light {
-    --background:           210 20% 97%;
-    --foreground:           220 30% 8%;
+    --background:           210 17% 97%;
+    --foreground:           220 30% 9%;
     --card:                 0 0% 100%;
-    --card-foreground:      220 30% 8%;
-    --border:               220 15% 88%;
-    --input:                220 15% 93%;
-    --ring:                 160 60% 35%;
-    --primary:              160 60% 33%;
+    --card-foreground:      220 30% 9%;
+    --border:               215 14% 89%;
+    --input:                215 14% 93%;
+    --ring:                 160 55% 35%;
+    --primary:              160 55% 33%;
     --primary-foreground:   0 0% 100%;
-    --secondary:            220 15% 93%;
-    --secondary-foreground: 220 30% 18%;
-    --muted:                220 15% 93%;
-    --muted-foreground:     220 15% 45%;
-    --accent:               275 60% 45%;
+    --secondary:            215 14% 93%;
+    --secondary-foreground: 220 25% 18%;
+    --muted:                215 14% 93%;
+    --muted-foreground:     215 12% 45%;
+    --accent:               265 55% 45%;
     --accent-foreground:    0 0% 100%;
     --radius:               4px;
 
-    --reactor-bg:              #f0f2f8;
-    --reactor-surface:         #ffffff;
+    --reactor-bg:              #f0f2f7;
+    --reactor-surface:         #f8f9fc;
     --reactor-card-bg:         #ffffff;
-    --reactor-border-color:    rgba(0,0,0,0.08);
-    --reactor-border-solid:    #dde3f0;
-    --reactor-text:            rgba(8,12,30,0.92);
-    --reactor-text-2:          rgba(8,12,30,0.58);
-    --reactor-text-muted:      rgba(8,12,30,0.38);
+    --reactor-border-color:    rgba(0,0,0,0.07);
+    --reactor-border-solid:    #e2e6ef;
+    --reactor-text:            #1c2333;
+    --reactor-text-2:          rgba(28,35,51,0.62);
+    --reactor-text-muted:      rgba(28,35,51,0.40);
     --reactor-sidebar-bg:      #ffffff;
-    --reactor-header-bg:       rgba(255,255,255,0.95);
+    --reactor-header-bg:       rgba(255,255,255,0.94);
     --reactor-nav-hover:       rgba(0,0,0,0.04);
-    --reactor-nav-active-bg:   rgba(0,160,130,0.07);
-    --reactor-nav-active-border: rgba(0,160,130,0.2);
-    --reactor-scrollbar-track: #e5eaf5;
-    --reactor-scrollbar-thumb: #c4cee0;
-    --lhex-green:              #009970;
-    --lhex-purple:             #6B22A8;
-    --lhex-jabu:               #4A0E4E;
+    --reactor-nav-active-bg:   rgba(0,150,125,0.07);
+    --reactor-nav-active-border: rgba(0,150,125,0.22);
+    --reactor-scrollbar-track: #eaecf2;
+    --reactor-scrollbar-thumb: #c8cedd;
+    --lhex-green:              #008c6e;
+    --lhex-purple:             #6220a0;
   }
 }
 
-/* ─────────────────── BASE ─────────────────── */
+/* ─── BASE ─── */
 @layer base {
   * { @apply border-border; }
 
@@ -103,6 +102,8 @@
     background-color: var(--reactor-bg);
     color: var(--reactor-text);
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.25s ease, color 0.25s ease;
   }
 
@@ -111,7 +112,7 @@
   }
 
   ::selection {
-    background-color: rgba(95,255,215,0.2);
+    background-color: rgba(95,255,215,0.18);
     color: #5FFFD7;
   }
 
@@ -121,60 +122,59 @@
   ::-webkit-scrollbar-thumb:hover  { background: rgba(95,255,215,0.4); }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   CORREÇÃO GLOBAL MODO CLARO
-   Tailwind gera text-white/* como branco absoluto.
-   No .light, remapeamos para tinta escura mantendo a opacidade.
-═══════════════════════════════════════════════════════════ */
-.light .text-white     { color: rgba(8,12,30,0.92) !important; }
-.light .text-white\/90 { color: rgba(8,12,30,0.90) !important; }
-.light .text-white\/80 { color: rgba(8,12,30,0.80) !important; }
-.light .text-white\/70 { color: rgba(8,12,30,0.70) !important; }
-.light .text-white\/60 { color: rgba(8,12,30,0.60) !important; }
-.light .text-white\/50 { color: rgba(8,12,30,0.50) !important; }
-.light .text-white\/40 { color: rgba(8,12,30,0.40) !important; }
-.light .text-white\/30 { color: rgba(8,12,30,0.30) !important; }
-.light .text-white\/20 { color: rgba(8,12,30,0.20) !important; }
-.light .text-white\/10 { color: rgba(8,12,30,0.10) !important; }
-.light .text-white\/5  { color: rgba(8,12,30,0.05) !important; }
+/* ═══════════════════════════════════════════════════════
+   CORREÇÃO GLOBAL — MODO CLARO
+   Tailwind text-white/* é branco absoluto → invertemos para tinta
+═══════════════════════════════════════════════════════ */
+.light .text-white     { color: #1c2333 !important; }
+.light .text-white\/90 { color: rgba(28,35,51,0.90) !important; }
+.light .text-white\/80 { color: rgba(28,35,51,0.80) !important; }
+.light .text-white\/70 { color: rgba(28,35,51,0.70) !important; }
+.light .text-white\/60 { color: rgba(28,35,51,0.60) !important; }
+.light .text-white\/50 { color: rgba(28,35,51,0.50) !important; }
+.light .text-white\/40 { color: rgba(28,35,51,0.40) !important; }
+.light .text-white\/30 { color: rgba(28,35,51,0.30) !important; }
+.light .text-white\/20 { color: rgba(28,35,51,0.20) !important; }
+.light .text-white\/10 { color: rgba(28,35,51,0.10) !important; }
+.light .text-white\/5  { color: rgba(28,35,51,0.05) !important; }
 
-.light .hover\:text-white:hover     { color: rgba(8,12,30,0.95) !important; }
-.light .hover\:text-white\/80:hover { color: rgba(8,12,30,0.80) !important; }
-.light .hover\:text-white\/70:hover { color: rgba(8,12,30,0.70) !important; }
+.light .hover\:text-white:hover     { color: #1c2333 !important; }
+.light .hover\:text-white\/80:hover { color: rgba(28,35,51,0.80) !important; }
+.light .hover\:text-white\/70:hover { color: rgba(28,35,51,0.70) !important; }
 
-.light .bg-white\/5   { background-color: rgba(8,12,30,0.04) !important; }
-.light .bg-white\/3   { background-color: rgba(8,12,30,0.02) !important; }
-.light .bg-white\/8   { background-color: rgba(8,12,30,0.05) !important; }
-.light .bg-white\/10  { background-color: rgba(8,12,30,0.06) !important; }
-.light .bg-white\/4   { background-color: rgba(8,12,30,0.03) !important; }
-.light .hover\:bg-white\/4:hover  { background-color: rgba(8,12,30,0.04) !important; }
-.light .hover\:bg-white\/5:hover  { background-color: rgba(8,12,30,0.05) !important; }
-.light .hover\:bg-white\/3:hover  { background-color: rgba(8,12,30,0.03) !important; }
-
-.light .border-white\/10 { border-color: rgba(8,12,30,0.10) !important; }
-.light .border-white\/20 { border-color: rgba(8,12,30,0.14) !important; }
+.light .bg-white\/5   { background-color: rgba(28,35,51,0.04) !important; }
+.light .bg-white\/8   { background-color: rgba(28,35,51,0.05) !important; }
+.light .bg-white\/10  { background-color: rgba(28,35,51,0.06) !important; }
+.light .bg-white\/3   { background-color: rgba(28,35,51,0.02) !important; }
+.light .bg-white\/4   { background-color: rgba(28,35,51,0.03) !important; }
+.light .hover\:bg-white\/4:hover { background-color: rgba(28,35,51,0.04) !important; }
+.light .hover\:bg-white\/5:hover { background-color: rgba(28,35,51,0.05) !important; }
+.light .hover\:bg-white\/3:hover { background-color: rgba(28,35,51,0.03) !important; }
+.light .border-white\/10 { border-color: rgba(28,35,51,0.10) !important; }
+.light .border-white\/20 { border-color: rgba(28,35,51,0.15) !important; }
 
 /* Fundos escuros hardcoded → claros */
-.light .bg-\[\#0a0a0f\]  { background-color: #f4f7fd !important; }
-.light .bg-\[\#0f0f1a\]  { background-color: #ffffff !important; }
-.light .bg-\[\#141428\]  { background-color: #ffffff !important; }
-.light .bg-\[\#0a0a0c\]  { background-color: #ffffff !important; }
-.light .bg-\[\#0f0f12\]  { background-color: #ffffff !important; }
-.light .bg-\[\#1a1a2e\]  { background-color: #f0f3fa !important; }
+.light .bg-\[\#0d1117\] { background-color: #f6f8fa !important; }
+.light .bg-\[\#161b22\] { background-color: #ffffff !important; }
+.light .bg-\[\#1c2128\] { background-color: #ffffff !important; }
+.light .bg-\[\#0a0a0c\] { background-color: #f6f8fa !important; }
+.light .bg-\[\#0f0f12\] { background-color: #ffffff !important; }
+.light .bg-\[\#0a0a0f\] { background-color: #f6f8fa !important; }
+.light .bg-\[\#0f0f1a\] { background-color: #ffffff !important; }
+.light .bg-\[\#141428\] { background-color: #ffffff !important; }
 
-/* ═══════════════════════════════════════════════════════════
-   UTILITIES — LHEX Design System
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════ */
 @layer utilities {
-
-  /* ── Shells de layout ── */
   .reactor-sidebar {
     background: var(--reactor-sidebar-bg);
     border-right: 1px solid var(--reactor-border-color);
-    box-shadow: 4px 0 32px rgba(0,0,0,0.5);
-    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: background 0.25s ease, border-color 0.25s ease;
   }
-  .light .reactor-sidebar { box-shadow: 4px 0 20px rgba(0,0,0,0.06); }
+  .light .reactor-sidebar {
+    box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+  }
 
   .reactor-header {
     background: var(--reactor-header-bg);
@@ -184,96 +184,104 @@
     transition: background 0.25s ease, border-color 0.25s ease;
   }
 
-  /* ── Cards — glass panel LHEX ── */
+  /* Cards */
   .reactor-card {
-    background: rgba(10,10,12,0.8);
-    border: 1px solid rgba(255,255,255,0.06);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: var(--reactor-card-bg);
+    border: 1px solid var(--reactor-border-color);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
   }
   .reactor-card:hover {
     border-color: rgba(95,255,215,0.2);
-    box-shadow: 0 0 24px rgba(95,255,215,0.06), 0 8px 32px rgba(0,0,0,0.6);
-    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(95,255,215,0.05), 0 4px 20px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
   }
   .light .reactor-card {
     background: #ffffff !important;
-    border: 1px solid rgba(0,0,0,0.08) !important;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.06) !important;
-    backdrop-filter: none !important;
+    border: 1px solid rgba(0,0,0,0.07) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02) !important;
   }
   .light .reactor-card:hover {
-    border-color: rgba(0,150,120,0.25) !important;
-    box-shadow: 0 4px 20px rgba(0,150,120,0.08) !important;
-    transform: translateY(-2px);
+    border-color: rgba(0,140,110,0.22) !important;
+    box-shadow: 0 4px 16px rgba(0,140,110,0.07), 0 1px 4px rgba(0,0,0,0.06) !important;
+    transform: translateY(-1px);
   }
 
-  /* ── Grid background ── */
+  /* Grid */
   .grid-bg {
     background-image:
-      linear-gradient(rgba(95,255,215,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(95,255,215,0.025) 1px, transparent 1px);
+      linear-gradient(rgba(95,255,215,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(95,255,215,0.02) 1px, transparent 1px);
     background-size: 40px 40px;
   }
   .light .grid-bg {
     background-image:
-      linear-gradient(rgba(0,120,100,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,120,100,0.04) 1px, transparent 1px);
+      linear-gradient(rgba(0,100,90,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,100,90,0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
-  /* ── Glows LHEX ── */
-  .glow-cyan   { box-shadow: 0 0 20px rgba(95,255,215,0.4), 0 0 60px rgba(95,255,215,0.12); }
-  .glow-green  { box-shadow: 0 0 20px rgba(95,255,215,0.4), 0 0 60px rgba(95,255,215,0.12); }
-  .glow-purple { box-shadow: 0 0 20px rgba(123,47,190,0.45), 0 0 60px rgba(123,47,190,0.15); }
-  .glow-text-cyan  { text-shadow: 0 0 12px rgba(95,255,215,0.9), 0 0 36px rgba(95,255,215,0.4); }
-  .glow-text-green { text-shadow: 0 0 12px rgba(95,255,215,0.9), 0 0 36px rgba(95,255,215,0.4); }
-  .light .glow-cyan  { box-shadow: 0 0 14px rgba(0,160,130,0.3); }
-  .light .glow-green { box-shadow: 0 0 14px rgba(0,160,130,0.3); }
-  .light .glow-text-cyan  { text-shadow: 0 0 8px rgba(0,150,120,0.5); }
-  .light .glow-text-green { text-shadow: 0 0 8px rgba(0,150,120,0.5); }
+  /* Glows */
+  .glow-cyan, .glow-green {
+    box-shadow: 0 0 16px rgba(95,255,215,0.3), 0 0 48px rgba(95,255,215,0.1);
+  }
+  .glow-purple {
+    box-shadow: 0 0 16px rgba(123,47,190,0.4), 0 0 48px rgba(123,47,190,0.12);
+  }
+  .glow-text-cyan, .glow-text-green {
+    text-shadow: 0 0 10px rgba(95,255,215,0.7), 0 0 28px rgba(95,255,215,0.3);
+  }
+  .light .glow-cyan, .light .glow-green {
+    box-shadow: 0 0 10px rgba(0,140,110,0.2);
+  }
+  .light .glow-text-cyan, .light .glow-text-green {
+    text-shadow: 0 0 6px rgba(0,140,110,0.4);
+  }
 
-  /* ── Notification panel ── */
+  /* Notification panel */
   .reactor-notif-panel {
     background: var(--reactor-card-bg);
     border: 1px solid var(--reactor-border-solid);
-    box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
   }
-  .light .reactor-notif-panel { box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+  .light .reactor-notif-panel {
+    box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+  }
 
   .text-balance { text-wrap: balance; }
 
-  .scanline {
-    background: linear-gradient(transparent 50%, rgba(0,0,0,0.04) 50%);
-    background-size: 100% 4px;
-    pointer-events: none;
+  /* Mobile overlay */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 39;
   }
 }
 
-/* ── Transições globais suaves ── */
+/* Transições globais */
 *, *::before, *::after {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;
   transition-duration: 150ms;
   transition-timing-function: ease;
 }
 
-/* ── Animações ── */
+/* Keyframes */
 @keyframes reactor-pulse {
   0%, 100% { opacity: 0.4; transform: scale(1); }
   50%       { opacity: 1;   transform: scale(1.02); }
 }
-@keyframes data-stream {
-  0%   { transform: translateY(0);     opacity: 1; }
-  100% { transform: translateY(-20px); opacity: 0; }
+@keyframes lhex-float {
+  0%, 100% { transform: translateY(0);   filter: drop-shadow(0 0 18px rgba(95,255,215,0.35)); }
+  50%       { transform: translateY(-5px); filter: drop-shadow(0 0 32px rgba(95,255,215,0.6)); }
 }
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
 }
-@keyframes lhex-float {
-  0%, 100% { transform: translateY(0) scale(1);   filter: drop-shadow(0 0 20px rgba(95,255,215,0.4)); }
-  50%       { transform: translateY(-6px) scale(1.01); filter: drop-shadow(0 0 40px rgba(95,255,215,0.7)); }
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
 }
 
 .cursor-blink::after {
@@ -281,5 +289,4 @@
   animation: blink 1s step-end infinite;
   color: #5FFFD7;
 }
-
 .animate-lhex-float { animation: lhex-float 4s ease-in-out infinite; }

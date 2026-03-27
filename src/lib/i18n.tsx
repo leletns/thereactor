@@ -42,6 +42,7 @@ const T = {
       "/agents":    "Automações — Configuração",
       "/channels":  "Canais — WhatsApp e Integrações",
       "/extension": "Extensão CRM",
+      "/suporte":   "Central de Ajuda",
     },
   },
   en: {
@@ -81,6 +82,7 @@ const T = {
       "/agents":    "Automations — Configuration",
       "/channels":  "Channels — WhatsApp & Integrations",
       "/extension": "CRM Extension",
+      "/suporte":   "Help Center",
     },
   },
   es: {
@@ -120,6 +122,7 @@ const T = {
       "/agents":    "Automatizaciones — Configuración",
       "/channels":  "Canales — WhatsApp e Integraciones",
       "/extension": "Extensión CRM",
+      "/suporte":   "Centro de Ayuda",
     },
   },
 } as const;
