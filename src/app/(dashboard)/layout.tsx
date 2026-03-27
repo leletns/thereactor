@@ -14,15 +14,12 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex">
-      {/* Sidebar */}
+    <div className="min-h-screen flex" style={{ background: "var(--reactor-bg)" }}>
       <ReactorSidebar />
 
-      {/* Main content area */}
       <div className="flex-1 flex flex-col ml-[240px] min-h-screen">
         <ReactorHeader />
 
-        {/* Page content */}
         <main className="flex-1 grid-bg relative overflow-auto">
           <AnimatePresence mode="wait">
             <motion.div
@@ -30,7 +27,7 @@ export default function DashboardLayout({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
               className="h-full"
             >
               {children}
