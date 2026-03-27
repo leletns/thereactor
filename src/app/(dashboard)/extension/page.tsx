@@ -44,13 +44,13 @@ const FEATURES = [
     icon: Brain,
     color: "#8b5cf6",
     title: "IA no Contexto Certo",
-    description: "O Reactor analisa o lead e entrega o insight perfeito diretamente no Puzzle enquanto voce navega no LinkedIn ou CRM.",
+    description: "O Reactor analisa o lead e entrega o insight perfeito diretamente no Chrome enquanto voce navega no LinkedIn ou CRM.",
   },
   {
     icon: MessageSquare,
     color: "#00ff88",
     title: "WhatsApp Integrado",
-    description: "Envie mensagens de follow-up diretamente pelo Puzzle sem abrir o WhatsApp. Evolution API no background.",
+    description: "Envie mensagens de follow-up diretamente pelo Chrome sem abrir o WhatsApp. Evolution API no background.",
   },
   {
     icon: Activity,
@@ -73,7 +73,7 @@ const FEATURES = [
 ];
 
 const WS_STEPS = [
-  { label: "Puzzle detecta evento", detail: "Lead abre email / visita site / interage", color: "#00f5ff" },
+  { label: "Chrome detecta evento", detail: "Lead abre email / visita site / interage", color: "#00f5ff" },
   { label: "Extensao envia via WebSocket", detail: "ws://reactor.seudominio.com/events", color: "#8b5cf6" },
   { label: "Reactor processa com IA", detail: "SDR Agent analisa contexto e historia", color: "#fbbf24" },
   { label: "Notificacao instantanea", detail: "Popup com insight + proxima acao", color: "#00ff88" },
@@ -205,7 +205,7 @@ export default function ExtensionPage() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Reactor CRM Extension</h2>
-              <p className="text-sm text-white/40">Puzzle Extension + WebSocket em tempo real</p>
+              <p className="text-sm text-white/40">Chrome Extension + WebSocket em tempo real</p>
             </div>
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function ExtensionPage() {
         <div className="relative z-10">
           <Puzzle className="h-8 w-8 text-reactor-cyan mx-auto mb-3" />
           <h3 className="text-lg font-bold text-white mb-2">
-            Reactor CRM — Disponivel em Breve na Puzzle Web Store
+            Reactor CRM — Disponivel em Breve na Chrome Web Store
           </h3>
           <p className="text-sm text-white/50 mb-4 max-w-md mx-auto">
             A extensao que conecta o poder do Reactor diretamente no seu navegador.
