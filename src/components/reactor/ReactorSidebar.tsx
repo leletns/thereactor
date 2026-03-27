@@ -5,16 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  Brain,
-  TrendingUp,
-  Users,
-  Megaphone,
-  Settings2,
-  Bot,
-  MessageSquare,
-  Settings,
-  Zap,
-  Puzzle,
+  Brain, TrendingUp, Users, Megaphone,
+  Settings2, Bot, MessageSquare, Settings, Puzzle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -25,49 +17,61 @@ export function ReactorSidebar() {
   const { lang, setLang, t } = useLang();
 
   const NAV_ITEMS = [
-    { key: "nucleus"   as const, href: "/nucleus",   icon: Brain       },
-    { key: "finance"   as const, href: "/finance",   icon: TrendingUp  },
-    { key: "sdr"       as const, href: "/sdr",       icon: Users       },
-    { key: "marketing" as const, href: "/marketing", icon: Megaphone   },
-    { key: "ops"       as const, href: "/ops",       icon: Settings2   },
-    { key: "agents"    as const, href: "/agents",    icon: Bot         },
-    { key: "channels"  as const, href: "/channels",  icon: MessageSquare },
-    { key: "extension" as const, href: "/extension", icon: Puzzle, badge: "NEW" },
+    { key: "nucleus"   as const, href: "/nucleus",   icon: Brain          },
+    { key: "finance"   as const, href: "/finance",   icon: TrendingUp     },
+    { key: "sdr"       as const, href: "/sdr",       icon: Users          },
+    { key: "marketing" as const, href: "/marketing", icon: Megaphone      },
+    { key: "ops"       as const, href: "/ops",       icon: Settings2      },
+    { key: "agents"    as const, href: "/agents",    icon: Bot            },
+    { key: "channels"  as const, href: "/channels",  icon: MessageSquare  },
+    { key: "extension" as const, href: "/extension", icon: Puzzle, badge: "BETA" },
   ];
 
   return (
     <aside className="reactor-sidebar fixed left-0 top-0 h-full w-[240px] flex flex-col z-40">
-      {/* Logo */}
-      <div
-        className="p-5 pb-4 border-b"
-        style={{ borderColor: "var(--reactor-border-color)" }}
-      >
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-reactor-cyan/10 border border-reactor-cyan/20 group-hover:border-reactor-cyan/40 transition-all duration-200">
-            <Zap style={{ width: 18, height: 18 }} className="text-reactor-cyan" />
+
+      {/* ── Logo LHEX ── */}
+      <div className="px-5 py-5 border-b" style={{ borderColor: "var(--reactor-border-color)" }}>
+        <Link href="/" className="group flex flex-col gap-0.5">
+          {/* L.H.E.X mark */}
+          <div className="flex items-center gap-0 font-mono text-[13px] font-semibold tracking-[0.2em]">
+            <span style={{ color: "#5FFFD7", textShadow: "0 0 14px rgba(95,255,215,0.8)" }}>L</span>
+            <span style={{ color: "#5FFFD7", textShadow: "0 0 14px rgba(95,255,215,0.8)" }}>.</span>
+            <span style={{ color: "#7B2FBE", textShadow: "0 0 14px rgba(123,47,190,0.9)" }}>H</span>
+            <span style={{ color: "#5FFFD7", textShadow: "0 0 14px rgba(95,255,215,0.8)" }}>.</span>
+            <span style={{ color: "#5FFFD7", textShadow: "0 0 14px rgba(95,255,215,0.8)" }}>E</span>
+            <span style={{ color: "#5FFFD7", textShadow: "0 0 14px rgba(95,255,215,0.8)" }}>.</span>
+            <span style={{ color: "#5FFFD7", textShadow: "0 0 14px rgba(95,255,215,0.8)" }}>X</span>
+            <span className="ml-1 text-[9px] font-light" style={{ color: "var(--reactor-text-muted)" }}>®</span>
           </div>
-          <div>
-            <div
-              className="text-sm font-bold text-reactor-cyan tracking-widest uppercase glow-text-cyan"
-              style={{ letterSpacing: "0.15em" }}
+          {/* Product name */}
+          <div className="flex items-baseline gap-2">
+            <span
+              className="font-sans text-[10px] font-semibold uppercase tracking-[0.22em]"
+              style={{ color: "var(--reactor-text-muted)", letterSpacing: "0.22em" }}
             >
-              THE REACTOR
-            </div>
-            <div
-              className="text-[10px] tracking-widest uppercase"
-              style={{ color: "var(--reactor-text-muted)", letterSpacing: "0.12em" }}
+              The Reactor
+            </span>
+            <span
+              className="text-[8px] font-mono px-1 py-px rounded"
+              style={{
+                background: "rgba(95,255,215,0.08)",
+                border: "1px solid rgba(95,255,215,0.15)",
+                color: "#5FFFD7",
+                letterSpacing: "0.1em",
+              }}
             >
-              lhex systems
-            </div>
+              v2
+            </span>
           </div>
         </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+      {/* ── Navigation ── */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         <div className="mb-3 px-2">
           <span
-            className="text-[10px] font-semibold uppercase tracking-widest"
+            className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em]"
             style={{ color: "var(--reactor-text-muted)" }}
           >
             {t.sidebar.modules}
@@ -83,20 +87,15 @@ export function ReactorSidebar() {
           return (
             <Link key={item.href} href={item.href}>
               <motion.div
-                whileHover={{ x: 2 }}
-                transition={{ duration: 0.15 }}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
-                  "transition-all duration-200 cursor-pointer group relative",
-                  isActive ? "nav-item-active" : ""
-                )}
+                whileHover={{ x: 3 }}
+                transition={{ duration: 0.12 }}
+                className={cn("relative flex items-center gap-3 px-3 py-2.5 rounded cursor-pointer group")}
                 style={
                   isActive
                     ? {
-                        background: "rgba(0, 245, 255, 0.06)",
-                        border: "1px solid rgba(0, 245, 255, 0.12)",
-                        boxShadow: "0 0 20px rgba(0, 245, 255, 0.05)",
-                        color: "#00f5ff",
+                        background: "var(--reactor-nav-active-bg)",
+                        border: "1px solid var(--reactor-nav-active-border)",
+                        color: "#5FFFD7",
                       }
                     : {
                         border: "1px solid transparent",
@@ -116,19 +115,29 @@ export function ReactorSidebar() {
                   }
                 }}
               >
+                {/* Active indicator */}
                 {isActive && (
                   <div
-                    className="nav-indicator absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
-                    style={{
-                      background: "#00f5ff",
-                      boxShadow: "0 0 8px rgba(0, 245, 255, 0.8)",
-                    }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 rounded-full"
+                    style={{ background: "#5FFFD7", boxShadow: "0 0 8px rgba(95,255,215,0.9)" }}
                   />
                 )}
-                <Icon className="h-4 w-4 shrink-0" style={{ opacity: isActive ? 1 : 0.5 }} />
-                <span className="flex-1">{t.nav[item.key]}</span>
+
+                <Icon className="h-[15px] w-[15px] shrink-0" style={{ opacity: isActive ? 1 : 0.45 }} />
+
+                <span className="flex-1 text-[13px] font-medium tracking-wide">
+                  {t.nav[item.key]}
+                </span>
+
                 {"badge" in item && item.badge && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-reactor-cyan/15 text-reactor-cyan border border-reactor-cyan/20">
+                  <span
+                    className="font-mono text-[9px] px-1.5 py-px rounded tracking-widest"
+                    style={{
+                      background: "rgba(95,255,215,0.08)",
+                      border: "1px solid rgba(95,255,215,0.18)",
+                      color: "#5FFFD7",
+                    }}
+                  >
                     {item.badge}
                   </span>
                 )}
@@ -138,52 +147,55 @@ export function ReactorSidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div
-        className="p-3 border-t"
-        style={{ borderColor: "var(--reactor-border-color)" }}
-      >
-        {/* User row */}
+      {/* ── Footer ── */}
+      <div className="px-3 pb-3 pt-2 border-t space-y-2" style={{ borderColor: "var(--reactor-border-color)" }}>
+
+        {/* User */}
         <div
-          className="flex items-center gap-3 px-2 py-2 rounded-lg transition-colors cursor-pointer group"
-          style={{ color: "var(--reactor-text)" }}
+          className="flex items-center gap-3 px-2 py-2 rounded cursor-pointer"
+          style={{ borderRadius: "4px" }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "var(--reactor-nav-hover)"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
         >
-          <Avatar className="h-8 w-8 border border-reactor-cyan/20">
-            <AvatarFallback className="bg-reactor-cyan/10 text-reactor-cyan text-xs font-bold">
-              LH
+          <Avatar className="h-7 w-7 rounded" style={{ borderRadius: "4px" }}>
+            <AvatarFallback
+              className="font-mono text-[11px] font-bold rounded"
+              style={{
+                background: "rgba(95,255,215,0.08)",
+                border: "1px solid rgba(95,255,215,0.18)",
+                color: "#5FFFD7",
+                borderRadius: "4px",
+              }}
+            >
+              LX
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate" style={{ color: "var(--reactor-text-2)" }}>
+            <p className="text-[12px] font-medium truncate" style={{ color: "var(--reactor-text-2)" }}>
               lhex systems
             </p>
-            <p className="text-[10px] truncate" style={{ color: "var(--reactor-text-muted)" }}>
-              admin@lhex.com
+            <p className="font-mono text-[9px] truncate" style={{ color: "var(--reactor-text-muted)" }}>
+              admin
             </p>
           </div>
           <Link href="/settings">
-            <Settings
-              className="h-4 w-4 transition-colors"
-              style={{ color: "var(--reactor-text-muted)" }}
-            />
+            <Settings className="h-3.5 w-3.5 transition-colors" style={{ color: "var(--reactor-text-muted)" }} />
           </Link>
         </div>
 
-        {/* Language switcher */}
-        <div className="mt-2 flex gap-1 px-1">
+        {/* Language */}
+        <div className="flex gap-1">
           {(["pt", "en", "es"] as const).map((l) => (
             <button
               key={l}
               onClick={() => setLang(l)}
-              className="flex-1 py-1 rounded-md text-[10px] font-semibold uppercase tracking-widest transition-all"
+              className="flex-1 py-1 font-mono text-[9px] font-semibold uppercase tracking-widest rounded transition-all"
               style={
                 lang === l
                   ? {
-                      background: "rgba(0, 245, 255, 0.12)",
-                      color: "#00f5ff",
-                      border: "1px solid rgba(0, 245, 255, 0.2)",
+                      background: "rgba(95,255,215,0.08)",
+                      color: "#5FFFD7",
+                      border: "1px solid rgba(95,255,215,0.2)",
                     }
                   : {
                       background: "transparent",
@@ -197,23 +209,21 @@ export function ReactorSidebar() {
           ))}
         </div>
 
-        {/* System status */}
+        {/* Status */}
         <div
-          className="mt-2 px-2 py-2 rounded-lg"
+          className="flex items-center gap-2 px-2 py-1.5 rounded"
           style={{
-            background: "rgba(0, 255, 136, 0.05)",
-            border: "1px solid rgba(0, 255, 136, 0.1)",
+            background: "rgba(95,255,215,0.04)",
+            border: "1px solid rgba(95,255,215,0.08)",
           }}
         >
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-reactor-green opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-reactor-green" />
-            </span>
-            <span className="text-[10px] text-reactor-green font-medium tracking-widest">
-              {t.sidebar.status}
-            </span>
-          </div>
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "#5FFFD7" }} />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: "#5FFFD7" }} />
+          </span>
+          <span className="font-mono text-[9px] font-semibold tracking-widest" style={{ color: "#5FFFD7" }}>
+            {t.sidebar.status}
+          </span>
         </div>
       </div>
     </aside>
