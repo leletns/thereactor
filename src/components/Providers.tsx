@@ -6,7 +6,7 @@ import { LanguageProvider } from "@/lib/i18n";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} themes={["dark", "light"]}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} themes={["dark", "light"]}>
       <LanguageProvider>
         {children}
       </LanguageProvider>
