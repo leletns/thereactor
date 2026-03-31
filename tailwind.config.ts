@@ -38,17 +38,18 @@ const config: Config = {
 
         /* ── L.H.E.X Systems ── */
         reactor: {
-          cyan:    "#5FFFD7",      // LHEX primary accent (mint-green)
-          green:   "#5FFFD7",
-          purple:  "#7B2FBE",      // jabuticaba lightened for UI contrast
-          jabu:    "#4A0E4E",      // deep jabuticaba brand purple
-          orange:  "#ff6b35",
-          red:     "#ff4444",
-          bg:      "#000000",
-          surface: "#0a0a0c",
-          card:    "#0f0f12",
-          border:  "rgba(255,255,255,0.06)",
-          glow:    "rgba(95,255,215,0.15)",
+          cyan:    "var(--lhex-green)",   // adaptive: #5FFFD7 dark / #00a885 light
+          green:   "var(--lhex-green)",
+          purple:  "#7B2FBE",
+          jabu:    "#4A0E4E",
+          orange:  "#f97316",
+          red:     "#ef4444",
+          bg:      "var(--reactor-bg)",
+          surface: "var(--reactor-surface)",
+          card:    "var(--reactor-card-bg)",
+          border:  "var(--reactor-border-color)",
+          text:    "var(--reactor-text)",
+          glow:    "rgba(95,255,215,0.12)",
         },
       },
 

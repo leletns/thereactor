@@ -242,6 +242,39 @@
   .text-balance { text-wrap: balance; }
 }
 
+/* ═══════════════════════════════════════════════════════
+   CORREÇÃO MODO CLARO — Tailwind reactor-* classes
+   box-shadow glows são invisíveis no fundo claro
+═══════════════════════════════════════════════════════ */
+.light .shadow-reactor-cyan,
+.light .shadow-reactor-green,
+:root .shadow-reactor-cyan,
+:root .shadow-reactor-green {
+  box-shadow: 0 0 0 1px rgba(0,168,133,0.2), 0 4px 12px rgba(0,168,133,0.08) !important;
+}
+.light .shadow-reactor-purple,
+:root .shadow-reactor-purple {
+  box-shadow: 0 0 0 1px rgba(98,32,160,0.2), 0 4px 12px rgba(98,32,160,0.08) !important;
+}
+
+/* hover:shadow-reactor-* fixup in light */
+.light .hover\:shadow-reactor-cyan:hover,
+.light .hover\:shadow-reactor-green:hover,
+:root .hover\:shadow-reactor-cyan:hover,
+:root .hover\:shadow-reactor-green:hover {
+  box-shadow: 0 0 0 1px rgba(0,168,133,0.25), 0 4px 16px rgba(0,168,133,0.12) !important;
+}
+
+/* hover:border-reactor-cyan/25 etc. — override for light */
+.light .hover\:border-reactor-cyan\/25:hover,
+:root .hover\:border-reactor-cyan\/25:hover {
+  border-color: rgba(0,168,133,0.25) !important;
+}
+.light .hover\:border-reactor-green\/25:hover,
+:root .hover\:border-reactor-green\/25:hover {
+  border-color: rgba(0,168,133,0.25) !important;
+}
+
 /* Transições globais suaves */
 *, *::before, *::after {
   transition-property: color, background-color, border-color, box-shadow, opacity, transform;
