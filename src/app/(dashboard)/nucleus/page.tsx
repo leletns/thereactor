@@ -61,10 +61,10 @@ const MOCK_A2A_EVENTS = [
 ];
 
 const TYPE_COLORS: Record<string, string> = {
-  delegation: "#00f5ff",
-  response: "#00ff88",
-  request: "#8b5cf6",
-  event: "#fbbf24",
+  delegation: "#0ea5e9",
+  response:   "#10b981",
+  request:    "#8b5cf6",
+  event:      "#f59e0b",
 };
 
 export default function NucleusPage() {
@@ -91,7 +91,7 @@ export default function NucleusPage() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Metrics bar */}
-        <div className="grid grid-cols-4 gap-3 p-4 border-b border-reactor-border">
+        <div className="grid grid-cols-4 gap-3 p-4 border-b" style={{ borderColor: "var(--reactor-border-color)" }}>
           <MetricCard
             title="Mensagens Hoje"
             value={1847}
@@ -134,12 +134,12 @@ export default function NucleusPage() {
 
       {/* Right sidebar */}
       <div
-        className="w-72 shrink-0 flex flex-col border-l border-reactor-border"
-        style={{ background: "#0f0f1a" }}
+        className="w-72 shrink-0 flex flex-col border-l"
+        style={{ background: "var(--reactor-surface)", borderColor: "var(--reactor-border-color)" }}
       >
         {/* Agents */}
-        <div className="p-3 border-b border-reactor-border">
-          <h3 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">
+        <div className="p-3 border-b" style={{ borderColor: "var(--reactor-border-color)" }}>
+          <h3 className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--reactor-text-muted)" }}>
             Agentes do Reactor
           </h3>
           <ScrollArea className="h-64">
@@ -160,11 +160,11 @@ export default function NucleusPage() {
         {/* A2A Events */}
         <div className="flex-1 p-3 min-h-0">
           <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-3.5 w-3.5 text-reactor-cyan" />
-            <h3 className="text-xs font-semibold text-white/40 uppercase tracking-widest">
+            <Zap className="h-3.5 w-3.5" style={{ color: "var(--lhex-green)" }} />
+            <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--reactor-text-muted)" }}>
               A2A Protocol
             </h3>
-            <span className="ml-auto flex h-1.5 w-1.5 rounded-full bg-reactor-cyan animate-pulse" />
+            <span className="ml-auto flex h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "var(--lhex-green)" }} />
           </div>
 
           <ScrollArea className="h-full">
@@ -175,7 +175,8 @@ export default function NucleusPage() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="p-2.5 rounded-lg bg-reactor-card border border-reactor-border"
+                  className="p-2.5 rounded-lg"
+                  style={{ background: "var(--reactor-card-bg)", border: "1px solid var(--reactor-border-color)" }}
                 >
                   <div className="flex items-center gap-1.5 mb-1">
                     <span
@@ -187,16 +188,16 @@ export default function NucleusPage() {
                     >
                       {event.type}
                     </span>
-                    <span className="text-[10px] text-white/30 ml-auto">
+                    <span className="text-[10px] ml-auto" style={{ color: "var(--reactor-text-muted)" }}>
                       {event.time}
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/50">
-                    <span className="text-white/70">{event.from}</span>
+                  <p className="text-[10px]" style={{ color: "var(--reactor-text-2)" }}>
+                    <span style={{ color: "var(--reactor-text)" }}>{event.from}</span>
                     {" → "}
-                    <span className="text-white/70">{event.to}</span>
+                    <span style={{ color: "var(--reactor-text)" }}>{event.to}</span>
                   </p>
-                  <p className="text-[10px] text-white/40 mt-0.5 line-clamp-1">
+                  <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "var(--reactor-text-muted)" }}>
                     {event.task}
                   </p>
                 </motion.div>

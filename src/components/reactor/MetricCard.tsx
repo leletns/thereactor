@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Minus, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { GlowCard } from "@/components/ui/GlowCard";
 
 interface MetricCardProps {
   title: string;
@@ -104,10 +104,10 @@ export function MetricCard({
 
   const trendColor =
     change === undefined || change === 0
-      ? "text-white/30"
+      ? "opacity-30"
       : change > 0
       ? "text-reactor-green"
-      : "text-reactor-red";
+      : "text-red-400";
 
   return (
     <motion.div
@@ -115,68 +115,57 @@ export function MetricCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      <Card
-        className={cn(
-          "transition-all duration-300 group",
-          colors.glow
-        )}
-      >
-        <CardContent className="p-5">
-          {loading ? (
-            <div className="space-y-3 animate-pulse">
-              <div className="h-4 w-24 bg-white/10 rounded" />
-              <div className="h-8 w-32 bg-white/10 rounded" />
-              <div className="h-3 w-20 bg-white/10 rounded" />
+      <GlowCard className="p-5">
+        {loading ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="h-4 w-24 rounded" style={{ background: "var(--reactor-border-solid)" }} />
+            <div className="h-8 w-32 rounded" style={{ background: "var(--reactor-border-solid)" }} />
+            <div className="h-3 w-20 rounded" style={{ background: "var(--reactor-border-solid)" }} />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-sm font-medium" style={{ color: "var(--reactor-text-2)" }}>{title}</p>
+              <div
+                className={cn("flex items-center justify-center h-9 w-9 rounded-lg border", colors.iconBg)}
+              >
+                <Icon className={cn("h-4 w-4", colors.icon)} />
+              </div>
             </div>
-          ) : (
-            <>
-              <div className="flex items-start justify-between mb-3">
-                <p className="text-sm text-white/50 font-medium">{title}</p>
-                <div
-                  className={cn(
-                    "flex items-center justify-center h-9 w-9 rounded-lg border",
-                    colors.iconBg
-                  )}
-                >
-                  <Icon className={cn("h-4 w-4", colors.icon)} />
-                </div>
-              </div>
 
-              <div className="mb-2">
-                <span className="text-2xl font-bold text-white tracking-tight">
-                  {prefix && (
-                    <span className="text-white/50 text-lg mr-0.5">{prefix}</span>
-                  )}
-                  {displayValue}
-                  {suffix && (
-                    <span className="text-white/50 text-lg ml-0.5">{suffix}</span>
-                  )}
-                </span>
-              </div>
+            <div className="mb-2">
+              <span className="text-2xl font-bold tracking-tight" style={{ color: "var(--reactor-text)" }}>
+                {prefix && (
+                  <span className="text-lg mr-0.5" style={{ color: "var(--reactor-text-muted)" }}>{prefix}</span>
+                )}
+                {displayValue}
+                {suffix && (
+                  <span className="text-lg ml-0.5" style={{ color: "var(--reactor-text-muted)" }}>{suffix}</span>
+                )}
+              </span>
+            </div>
 
-              {(change !== undefined || description) && (
-                <div className="flex items-center gap-1.5">
-                  {change !== undefined && (
-                    <>
-                      <TrendIcon className={cn("h-3.5 w-3.5", trendColor)} />
-                      <span className={cn("text-xs font-medium", trendColor)}>
-                        {change > 0 ? "+" : ""}
-                        {change}%
-                      </span>
-                    </>
-                  )}
-                  {changeLabel && (
-                    <span className="text-xs text-white/30">{changeLabel}</span>
-                  )}
-                  {description && !changeLabel && (
-                    <span className="text-xs text-white/30">{description}</span>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            {(change !== undefined || description) && (
+              <div className="flex items-center gap-1.5">
+                {change !== undefined && (
+                  <>
+                    <TrendIcon className={cn("h-3.5 w-3.5", trendColor)} />
+                    <span className={cn("text-xs font-medium", trendColor)}>
+                      {change > 0 ? "+" : ""}{change}%
+                    </span>
+                  </>
+                )}
+                {changeLabel && (
+                  <span className="text-xs" style={{ color: "var(--reactor-text-muted)" }}>{changeLabel}</span>
+                )}
+                {description && !changeLabel && (
+                  <span className="text-xs" style={{ color: "var(--reactor-text-muted)" }}>{description}</span>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </GlowCard>
     </motion.div>
   );
 }
