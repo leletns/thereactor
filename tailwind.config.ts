@@ -54,8 +54,8 @@ const config: Config = {
       },
 
       fontFamily: {
-        sans: ["Montserrat", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "Consolas", "monospace"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "Consolas", "monospace"],
       },
 
       /* 4px industrial — identidade LHEX */

@@ -3,96 +3,61 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════
-   L.H.E.X Systems — The Reactor v3
+   THE REACTOR — Sovereign Light Tech
    ─────────────────────────────────────────────────────
-   Estética: Stripe / Linear / Notion — premium clean
-   Sem neon, sem cyberpunk. High-ticket, leve na vista.
+   Estética: Apple / Stripe / Linear — Enterprise SaaS
+   Zero neon. Zero dark mode. Puro luxo em luz.
    ─────────────────────────────────────────────────────
-   Acento:    #5FFFD7 (dark) / #00a885 (light)
-   Dark bg:   #0f1117  (slate escuro — não cansa)
-   Light bg:  #f7f8fc  (slate claro — profissional)
-   Fonte:     Montserrat + JetBrains Mono
+   Primária:  #00A884 (LHEX mint sovereign)
+   Destaque:  #6220A0 (jabuticaba profundo)
+   Fundo:     #FAFAFA (off-white luminoso)
+   Texto:     #111827 (grafite escuro, não puro preto)
+   Fonte:     Inter (--font-inter) + JetBrains Mono
 ═══════════════════════════════════════════════════════ */
 
 @layer base {
-  /* ─── LIGHT (padrão) ─── */
-  :root, .light {
-    --background:           210 17% 98%;
-    --foreground:           220 25% 9%;
+  :root {
+    /* ─── shadcn/ui tokens ─── */
+    --background:           0 0% 98%;
+    --foreground:           220 25% 8%;
     --card:                 0 0% 100%;
-    --card-foreground:      220 25% 9%;
-    --border:               220 13% 91%;
+    --card-foreground:      220 25% 8%;
+    --border:               220 13% 92%;
     --input:                220 13% 94%;
     --ring:                 162 100% 33%;
     --primary:              162 100% 33%;
     --primary-foreground:   0 0% 100%;
-    --secondary:            220 13% 94%;
+    --secondary:            220 13% 96%;
     --secondary-foreground: 220 20% 20%;
-    --muted:                220 13% 94%;
+    --muted:                220 13% 96%;
     --muted-foreground:     220 10% 46%;
-    --accent:               265 55% 45%;
+    --accent:               270 60% 45%;
     --accent-foreground:    0 0% 100%;
-    --radius:               6px;
+    --radius:               8px;
 
-    --reactor-bg:              #f7f8fc;
-    --reactor-surface:         #ffffff;
-    --reactor-card-bg:         #ffffff;
-    --reactor-border-color:    rgba(0,0,0,0.07);
-    --reactor-border-solid:    #e4e7ef;
+    /* ─── Reactor design tokens ─── */
+    --reactor-bg:              #FAFAFA;
+    --reactor-surface:         #FFFFFF;
+    --reactor-card-bg:         #FFFFFF;
+    --reactor-border-color:    rgba(0,0,0,0.06);
+    --reactor-border-solid:    #E5E7EB;
     --reactor-text:            #111827;
-    --reactor-text-2:          #6b7280;
-    --reactor-text-muted:      #9ca3af;
-    --reactor-sidebar-bg:      #ffffff;
-    --reactor-header-bg:       rgba(255,255,255,0.92);
+    --reactor-text-2:          #374151;
+    --reactor-text-muted:      #9CA3AF;
+    --reactor-sidebar-bg:      #FFFFFF;
+    --reactor-header-bg:       rgba(255,255,255,0.88);
     --reactor-nav-hover:       rgba(0,0,0,0.04);
-    --reactor-nav-active-bg:   rgba(0,168,133,0.07);
-    --reactor-nav-active-border: rgba(0,168,133,0.0);
-    --reactor-card-shadow:     0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
-    --reactor-card-shadow-hover: 0 4px 16px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.05);
-    --reactor-scrollbar-track: #eef0f6;
-    --reactor-scrollbar-thumb: #d1d5e0;
-    --lhex-green:              #00a885;
-    --lhex-purple:             #6220a0;
-  }
+    --reactor-nav-active-bg:   rgba(0,168,132,0.07);
+    --reactor-card-shadow:     0 1px 2px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.04);
+    --reactor-card-shadow-hover: 0 8px 30px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05);
+    --reactor-scrollbar-track: #F3F4F6;
+    --reactor-scrollbar-thumb: #D1D5DB;
 
-  /* ─── DARK ─── */
-  .dark {
-    --background:           222 18% 8%;
-    --foreground:           215 20% 90%;
-    --card:                 222 16% 11%;
-    --card-foreground:      215 20% 90%;
-    --border:               220 14% 16%;
-    --input:                220 14% 13%;
-    --ring:                 160 100% 68%;
-    --primary:              160 100% 68%;
-    --primary-foreground:   0 0% 0%;
-    --secondary:            220 14% 13%;
-    --secondary-foreground: 215 15% 72%;
-    --muted:                220 14% 13%;
-    --muted-foreground:     220 10% 42%;
-    --accent:               268 60% 48%;
-    --accent-foreground:    0 0% 100%;
-    --radius:               6px;
-
-    --reactor-bg:              #0f1117;
-    --reactor-surface:         #151820;
-    --reactor-card-bg:         #1e2028;
-    --reactor-border-color:    rgba(255,255,255,0.07);
-    --reactor-border-solid:    #252b38;
-    --reactor-text:            #e2e8f0;
-    --reactor-text-2:          #8892a4;
-    --reactor-text-muted:      #525d6e;
-    --reactor-sidebar-bg:      #151820;
-    --reactor-header-bg:       rgba(15,17,23,0.92);
-    --reactor-nav-hover:       rgba(255,255,255,0.04);
-    --reactor-nav-active-bg:   rgba(95,255,215,0.06);
-    --reactor-nav-active-border: rgba(95,255,215,0.0);
-    --reactor-card-shadow:     none;
-    --reactor-card-shadow-hover: 0 8px 24px rgba(0,0,0,0.35);
-    --reactor-scrollbar-track: #151820;
-    --reactor-scrollbar-thumb: rgba(255,255,255,0.08);
-    --lhex-green:              #5FFFD7;
-    --lhex-purple:             #9b5de5;
+    /* ─── Brand ─── */
+    --lhex-green:              #00A884;
+    --lhex-green-rgb:          0, 168, 132;
+    --lhex-purple:             #6220A0;
+    --lhex-cyan:               #00C2D4;
   }
 }
 
@@ -100,201 +65,208 @@
 @layer base {
   * { @apply border-border; }
 
+  html { scroll-behavior: smooth; }
+
   body {
-    font-family: "Montserrat", system-ui, sans-serif;
+    font-family: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
     background-color: var(--reactor-bg);
     color: var(--reactor-text);
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   code, pre, .font-mono {
-    font-family: "JetBrains Mono", Consolas, monospace;
+    font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
   }
 
   ::selection {
-    background-color: rgba(0,168,133,0.15);
-    color: inherit;
+    background-color: rgba(0,168,132,0.15);
+    color: #111827;
   }
-  .dark ::selection { background-color: rgba(95,255,215,0.15); }
 
   ::-webkit-scrollbar              { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track        { background: var(--reactor-scrollbar-track); }
   ::-webkit-scrollbar-thumb        { background: var(--reactor-scrollbar-thumb); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover  { background: var(--lhex-green); opacity: 0.5; }
+  ::-webkit-scrollbar-thumb:hover  { background: var(--lhex-green); }
 }
 
 /* ═══════════════════════════════════════════════════════
-   CORREÇÃO GLOBAL — MODO CLARO
-   text-white/* é branco absoluto → redireciona para tinta
+   CORREÇÃO GLOBAL — text-white/* em fundo claro
+   Tailwind text-white = branco absoluto: redireciona
 ═══════════════════════════════════════════════════════ */
-.light .text-white, :root .text-white { color: #111827 !important; }
-.light .text-white\/90, :root .text-white\/90 { color: rgba(17,24,39,0.90) !important; }
-.light .text-white\/80, :root .text-white\/80 { color: rgba(17,24,39,0.80) !important; }
-.light .text-white\/70, :root .text-white\/70 { color: rgba(17,24,39,0.70) !important; }
-.light .text-white\/60, :root .text-white\/60 { color: rgba(17,24,39,0.60) !important; }
-.light .text-white\/50, :root .text-white\/50 { color: rgba(17,24,39,0.50) !important; }
-.light .text-white\/40, :root .text-white\/40 { color: rgba(17,24,39,0.40) !important; }
-.light .text-white\/30, :root .text-white\/30 { color: rgba(17,24,39,0.30) !important; }
-.light .text-white\/20, :root .text-white\/20 { color: rgba(17,24,39,0.20) !important; }
-.light .text-white\/10, :root .text-white\/10 { color: rgba(17,24,39,0.10) !important; }
-.light .text-white\/5,  :root .text-white\/5  { color: rgba(17,24,39,0.05) !important; }
+.text-white,
+:root .text-white { color: #111827 !important; }
 
-.light .hover\:text-white:hover, :root .hover\:text-white:hover { color: #111827 !important; }
-.light .bg-white\/5,  :root .bg-white\/5  { background-color: rgba(17,24,39,0.03) !important; }
-.light .bg-white\/8,  :root .bg-white\/8  { background-color: rgba(17,24,39,0.04) !important; }
-.light .bg-white\/10, :root .bg-white\/10 { background-color: rgba(17,24,39,0.05) !important; }
-.light .bg-white\/3,  :root .bg-white\/3  { background-color: rgba(17,24,39,0.02) !important; }
-.light .bg-white\/4,  :root .bg-white\/4  { background-color: rgba(17,24,39,0.03) !important; }
-.light .hover\:bg-white\/4:hover { background-color: rgba(17,24,39,0.04) !important; }
-.light .hover\:bg-white\/5:hover { background-color: rgba(17,24,39,0.05) !important; }
-.light .border-white\/10 { border-color: rgba(17,24,39,0.09) !important; }
-.light .border-white\/20 { border-color: rgba(17,24,39,0.13) !important; }
+.text-white\/90 { color: rgba(17,24,39,0.90) !important; }
+.text-white\/80 { color: rgba(17,24,39,0.80) !important; }
+.text-white\/70 { color: rgba(17,24,39,0.70) !important; }
+.text-white\/60 { color: rgba(17,24,39,0.60) !important; }
+.text-white\/50 { color: rgba(17,24,39,0.50) !important; }
+.text-white\/40 { color: rgba(17,24,39,0.40) !important; }
+.text-white\/30 { color: rgba(17,24,39,0.30) !important; }
+.text-white\/20 { color: rgba(17,24,39,0.20) !important; }
+.text-white\/10 { color: rgba(17,24,39,0.10) !important; }
+.text-white\/5  { color: rgba(17,24,39,0.05) !important; }
 
-/* Fundos escuros hardcoded → brancos no light */
-.light .bg-\[\#0f1117\], .light .bg-\[\#0d1117\], .light .bg-\[\#0a0a0f\] { background-color: #f7f8fc !important; }
-.light .bg-\[\#151820\], .light .bg-\[\#161b22\], .light .bg-\[\#0f0f1a\] { background-color: #ffffff !important; }
-.light .bg-\[\#1e2028\], .light .bg-\[\#1c2128\], .light .bg-\[\#141428\] { background-color: #ffffff !important; }
+.hover\:text-white:hover { color: #111827 !important; }
+
+/* bg-white/* overrides */
+.bg-white\/5   { background-color: rgba(17,24,39,0.03) !important; }
+.bg-white\/8   { background-color: rgba(17,24,39,0.04) !important; }
+.bg-white\/10  { background-color: rgba(17,24,39,0.05) !important; }
+.bg-white\/3   { background-color: rgba(17,24,39,0.02) !important; }
+
+.hover\:bg-white\/5:hover  { background-color: rgba(17,24,39,0.04) !important; }
+.hover\:bg-white\/10:hover { background-color: rgba(17,24,39,0.06) !important; }
+
+/* border overrides */
+.border-white\/10 { border-color: rgba(17,24,39,0.09) !important; }
+.border-white\/20 { border-color: rgba(17,24,39,0.13) !important; }
+.border-white\/5  { border-color: rgba(17,24,39,0.05) !important; }
+
+/* Fundos hardcoded escuros */
+.bg-\[\#0f1117\], .bg-\[\#0d1117\], .bg-\[\#0a0a0f\],
+.bg-\[\#151820\], .bg-\[\#161b22\], .bg-\[\#0f0f1a\],
+.bg-\[\#1e2028\], .bg-\[\#1c2128\], .bg-\[\#141428\],
+.bg-\[\#0a0a0c\] { background-color: var(--reactor-surface) !important; }
+
+/* Tailwind reactor-* glow shadows no fundo claro */
+.shadow-reactor-cyan,
+.shadow-reactor-green,
+.hover\:shadow-reactor-cyan:hover,
+.hover\:shadow-reactor-green:hover {
+  box-shadow: 0 0 0 1px rgba(0,168,132,0.2), 0 4px 16px rgba(0,168,132,0.10) !important;
+}
+.shadow-reactor-purple,
+.hover\:shadow-reactor-purple:hover {
+  box-shadow: 0 0 0 1px rgba(98,32,160,0.2), 0 4px 16px rgba(98,32,160,0.08) !important;
+}
+.hover\:border-reactor-cyan\/25:hover,
+.hover\:border-reactor-green\/25:hover {
+  border-color: rgba(0,168,132,0.28) !important;
+}
 
 /* ═══════════════════════════════════════════════════════
-   UTILITIES — HIGH TICKET CLEAN
+   UTILITIES — SOVEREIGN LIGHT TECH
 ═══════════════════════════════════════════════════════ */
 @layer utilities {
-  /* Layout shells */
+  /* ── Layout shells ── */
   .reactor-sidebar {
     background: var(--reactor-sidebar-bg);
-    border-right: 1px solid var(--reactor-border-color);
+    border-right: 1px solid var(--reactor-border-solid);
     transition: background 0.2s, border-color 0.2s;
   }
 
   .reactor-header {
     background: var(--reactor-header-bg);
-    border-bottom: 1px solid var(--reactor-border-color);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: background 0.2s, border-color 0.2s;
+    border-bottom: 1px solid var(--reactor-border-solid);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
-  /* Cards — shadow-based, sem glow */
+  /* ── Cards ── */
   .reactor-card {
     background: var(--reactor-card-bg);
     border: 1px solid var(--reactor-border-color);
     box-shadow: var(--reactor-card-shadow);
-    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
-    border-radius: 8px;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.18s;
+    border-radius: 16px;
   }
   .reactor-card:hover {
     box-shadow: var(--reactor-card-shadow-hover);
-    transform: translateY(-1px);
-  }
-  .dark .reactor-card {
-    border-color: var(--reactor-border-color);
-    box-shadow: none;
-  }
-  .dark .reactor-card:hover {
-    border-color: rgba(255,255,255,0.12);
-    box-shadow: var(--reactor-card-shadow-hover);
+    border-color: rgba(0,0,0,0.08);
   }
 
-  /* Grid background — muito sutil */
+  /* ── Premium Bento Card ── */
+  .bento-card {
+    background: rgba(255,255,255,0.70);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.50);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03);
+    border-radius: 24px;
+    padding: 1.5rem;
+    transition: box-shadow 0.22s, transform 0.18s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .bento-card:hover {
+    box-shadow: 0 16px 48px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
+  }
+
+  /* ── Grid background ── */
   .grid-bg {
     background-image:
-      linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-  .dark .grid-bg {
-    background-image:
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 32px 32px;
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
   }
 
-  /* Notif panel */
+  /* ── Notification panel ── */
   .reactor-notif-panel {
-    background: var(--reactor-card-bg);
+    background: #FFFFFF;
     border: 1px solid var(--reactor-border-solid);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
-    border-radius: 8px;
-  }
-  .dark .reactor-notif-panel {
-    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+    border-radius: 12px;
   }
 
-  /* Mobile overlay */
+  /* ── Mobile overlay ── */
   .sidebar-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(2px);
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(3px);
     z-index: 39;
   }
 
-  /* Glow — apenas para logo, não para UI */
-  .lhex-logo-glow {
-    filter: drop-shadow(0 0 10px rgba(95,255,215,0.3));
+  /* ── Logo pulse ── */
+  .lhex-logo-pulse { animation: lhex-pulse 3.5s ease-in-out infinite; }
+  .lhex-logo-glow  { filter: drop-shadow(0 0 6px rgba(0,168,132,0.25)); }
+
+  /* ── Typography ── */
+  .text-balance   { text-wrap: balance; }
+  .tracking-hero  { letter-spacing: -0.03em; }
+  .tracking-title { letter-spacing: -0.02em; }
+
+  /* ── Glassmorphism ── */
+  .glass {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6);
   }
-  .light .lhex-logo-glow {
-    filter: drop-shadow(0 0 6px rgba(0,168,133,0.2));
+
+  /* ── Cursor blink ── */
+  .cursor-blink::after {
+    content: '|';
+    animation: blink 1s step-end infinite;
+    color: var(--lhex-green);
   }
-
-  .text-balance { text-wrap: balance; }
 }
 
-/* ═══════════════════════════════════════════════════════
-   CORREÇÃO MODO CLARO — Tailwind reactor-* classes
-   box-shadow glows são invisíveis no fundo claro
-═══════════════════════════════════════════════════════ */
-.light .shadow-reactor-cyan,
-.light .shadow-reactor-green,
-:root .shadow-reactor-cyan,
-:root .shadow-reactor-green {
-  box-shadow: 0 0 0 1px rgba(0,168,133,0.2), 0 4px 12px rgba(0,168,133,0.08) !important;
+/* ─── Keyframes ─── */
+@keyframes lhex-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(0,168,132,0.18)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(0,168,132,0.36)); }
 }
-.light .shadow-reactor-purple,
-:root .shadow-reactor-purple {
-  box-shadow: 0 0 0 1px rgba(98,32,160,0.2), 0 4px 12px rgba(98,32,160,0.08) !important;
-}
-
-/* hover:shadow-reactor-* fixup in light */
-.light .hover\:shadow-reactor-cyan:hover,
-.light .hover\:shadow-reactor-green:hover,
-:root .hover\:shadow-reactor-cyan:hover,
-:root .hover\:shadow-reactor-green:hover {
-  box-shadow: 0 0 0 1px rgba(0,168,133,0.25), 0 4px 16px rgba(0,168,133,0.12) !important;
-}
-
-/* hover:border-reactor-cyan/25 etc. — override for light */
-.light .hover\:border-reactor-cyan\/25:hover,
-:root .hover\:border-reactor-cyan\/25:hover {
-  border-color: rgba(0,168,133,0.25) !important;
-}
-.light .hover\:border-reactor-green\/25:hover,
-:root .hover\:border-reactor-green\/25:hover {
-  border-color: rgba(0,168,133,0.25) !important;
-}
-
-/* Transições globais suaves */
-*, *::before, *::after {
-  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
-}
-
-/* Keyframes */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
 }
-@keyframes lhex-pulse {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(95,255,215,0.2)); }
-  50%       { filter: drop-shadow(0 0 16px rgba(95,255,215,0.45)); }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
-.cursor-blink::after {
-  content: '|';
-  animation: blink 1s step-end infinite;
-  color: var(--lhex-green);
+/* ─── Global spring ─── */
+*, *::before, *::after {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: ease;
 }
-.lhex-logo-pulse { animation: lhex-pulse 3s ease-in-out infinite; }

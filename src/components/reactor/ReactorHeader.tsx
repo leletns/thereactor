@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Terminal, Sun, Moon, Zap, Menu } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Bell, Terminal, Zap, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -22,7 +21,6 @@ interface ReactorHeaderProps {
 
 export function ReactorHeader({ onMenuToggle }: ReactorHeaderProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const { t } = useLang();
 
   const [pulse, setPulse] = useState(0);
@@ -98,17 +96,6 @@ export function ReactorHeader({ onMenuToggle }: ReactorHeaderProps) {
 
         {/* Right: actions */}
         <div className="flex items-center gap-1">
-          <button
-            className={iconBase}
-            style={{ color: "var(--reactor-text-muted)", border: "1px solid transparent" }}
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            title={t.header.toggleTheme}
-            onMouseEnter={onEnter}
-            onMouseLeave={onLeave}
-          >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
-
           <button
             className={cn(iconBase, "hidden md:flex")}
             style={{ color: "var(--reactor-text-muted)", border: "1px solid transparent" }}
