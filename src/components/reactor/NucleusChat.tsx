@@ -27,7 +27,7 @@ interface Message {
   streaming?: boolean;
 }
 
-const AGENT_CONFIG: Record<AgentRole, { label: string; icon: React.ElementType; color: string }> = {
+const AGENT_CONFIG: Record<AgentRole, { label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; color: string }> = {
   orchestrator: { label: "Nucleus", icon: Brain, color: "#00f5ff" },
   finance: { label: "Financeiro", icon: TrendingUp, color: "#00ff88" },
   sdr: { label: "SDR", icon: Users, color: "#8b5cf6" },

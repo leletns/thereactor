@@ -2,14 +2,30 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { motion, useSpring, useTransform, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   TrendingUp, Users, Megaphone, Settings2,
   MessageSquare, Brain, Zap, ArrowRight,
   Activity, Network, ChevronRight,
   Phone, Mail, X, Shield, Globe, Cpu,
 } from "lucide-react";
-import { ReactorCore3D } from "@/components/reactor/ReactorCore3D";
+import dynamic from "next/dynamic";
+
+const ReactorCore3D = dynamic(
+  () => import("@/components/reactor/ReactorCore3D").then((m) => m.ReactorCore3D),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 380 }}>
+        <div style={{
+          width: 180, height: 180, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(0,194,212,0.10), transparent 70%)",
+          animation: "float 3s ease-in-out infinite",
+        }} />
+      </div>
+    ),
+  }
+);
 
 /* ─────────────────────────────────────────────────────
    GlowCard — radial gradient segue o cursor por dentro
@@ -129,21 +145,18 @@ const STATS = [
 /* ─────────────────────────────────────────────────────
    Stagger container
 ───────────────────────────────────────────────────── */
-const stagger = {
+const stagger: Variants = {
   hidden:  { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1,
-    },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 } as never,
   },
 };
-const springItem = {
+const springItem: Variants = {
   hidden:  { opacity: 0, y: 24, scale: 0.97 },
   visible: {
     opacity: 1, y: 0, scale: 1,
-    transition: { type: "spring", stiffness: 300, damping: 20 },
+    transition: { type: "spring", stiffness: 300, damping: 20 } as never,
   },
 };
 

@@ -61,7 +61,7 @@ const AI_INSIGHTS = [
   { title: "CAC acima da meta", content: "Google Ads com CAC de R$ 520 vs meta R$ 350. Revise keywords negativas e CTR dos anúncios.", color: "#fbbf24" },
 ];
 
-const CHANNEL_ICONS: Record<string, React.ElementType> = {
+const CHANNEL_ICONS: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   Instagram: AtSign, LinkedIn: Link2, Email: Mail, Google: BarChart2, Multicanal: Megaphone,
 };
 
