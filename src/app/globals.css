@@ -264,6 +264,20 @@
   100% { background-position:  200% 0; }
 }
 
+/* ─── Hero glow halos ─── */
+.hero-glow-purple {
+  background: radial-gradient(ellipse 70% 55% at 50% 40%, rgba(98,32,160,0.13), transparent 70%);
+  pointer-events: none;
+}
+.hero-glow-cyan {
+  background: radial-gradient(ellipse 45% 40% at 50% 30%, rgba(0,194,212,0.09), transparent 65%);
+  pointer-events: none;
+}
+.hero-glow-teal {
+  background: radial-gradient(ellipse 30% 25% at 50% 35%, rgba(0,168,132,0.06), transparent 60%);
+  pointer-events: none;
+}
+
 /* ─── Global spring ─── */
 *, *::before, *::after {
   transition-property: color, background-color, border-color, box-shadow, opacity;
