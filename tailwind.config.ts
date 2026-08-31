@@ -36,91 +36,74 @@ const config: Config = {
         },
 
         /* ── The Reactor ── */
-        canvas: "#f5f6f8",
+        canvas: "#fbfaff",
         surface: "#ffffff",
-        sunken: "#f0f2f7",
+        sunken: "#f4f3f8",
+        wash: "#ebe5ff",
         ink: {
-          DEFAULT: "#021422",
-          2: "#45566a",
-          3: "#7d8b99",
+          DEFAULT: "#100f12",
+          2: "#65646e",
+          3: "#787685",
         },
         hairline: {
-          DEFAULT: "#e4e8f0",
-          strong: "#d0d4e4",
+          DEFAULT: "#ebe5ff",
+          strong: "#d9cffa",
         },
+        /* The single accent — outlines, strokes, thin fills. Never a flood. */
         violet: {
-          DEFAULT: "#6161ff",
-          soft: "#eeeeff",
-          deep: "#4a4ae0",
+          DEFAULT: "#8d6fde",
+          soft: "#ebe5ff",
+          deep: "#4a3e8a",
         },
-        grass: {
-          DEFAULT: "#00852e",
-          soft: "#e6f6ec",
-        },
-        amber: {
-          DEFAULT: "#b26a00",
-          soft: "#fff3e0",
-        },
-        rose: {
-          DEFAULT: "#c8102e",
-          soft: "#fdeaed",
-        },
-        pastel: {
-          mint: "#bcfe90",
-          sky: "#abf0ff",
-          lavender: "#eddff7",
-          periwinkle: "#e7ecff",
-          aqua: "#d1faff",
-          peach: "#ffe1c4",
-          peony: "#fcd0f8",
-        },
+        /* Status semantics for a data product; not brand colours */
+        grass: { DEFAULT: "#1f7a4d", soft: "#e6f4ec" },
+        amber: { DEFAULT: "#96600b", soft: "#fbf1e2" },
+        rose: { DEFAULT: "#b3324a", soft: "#fceef1" },
       },
 
       fontFamily: {
-        sans: ["var(--font-poppins)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+      },
+
+      fontWeight: {
+        thin: "200",
+        normal: "400",
+        medium: "500",
+        semibold: "600",
       },
 
       fontSize: {
-        "2xs": ["10px", { lineHeight: "1.4" }],
+        "2xs": ["10px", { lineHeight: "1.2", letterSpacing: "-0.009em" }],
+        display: ["46px", { lineHeight: "1.03", letterSpacing: "-0.015em" }],
       },
 
       borderRadius: {
         DEFAULT: "10px",
-        sm: "6px",
+        sm: "7px",
         md: "10px",
         lg: "12px",
-        xl: "16px",
-        "2xl": "20px",
-        "3xl": "24px",
-        pill: "160px",
+        xl: "17px",
+        "2xl": "17px",
+        "3xl": "28px",
+        pill: "1440px",
         full: "9999px",
       },
 
       boxShadow: {
-        card: "rgba(205, 208, 223, 0.4) 0px 2px 48px 0px",
-        lift: "rgba(2, 20, 34, 0.10) 0px 6px 28px 0px",
-        pop: "rgba(2, 20, 34, 0.14) 0px 10px 40px 0px",
+        float: "0 16px 40px rgba(16,15,18,0.10), 0 2px 8px rgba(16,15,18,0.05)",
+        panel: "0 24px 64px rgba(16,15,18,0.12), 0 4px 12px rgba(16,15,18,0.06)",
       },
 
       animation: {
-        "fade-in": "fade-in 0.35s ease-out",
-        "slide-up": "slide-up 0.35s ease-out",
-        shimmer: "shimmer 1.6s linear infinite",
+        "fade-in": "fade-in 0.3s ease-out",
+        "slide-up": "slide-up 0.3s ease-out",
       },
 
       keyframes: {
-        "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
+        "fade-in": { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
         "slide-up": {
-          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        shimmer: {
-          "0%": { backgroundPosition: "-400px 0" },
-          "100%": { backgroundPosition: "400px 0" },
         },
       },
     },

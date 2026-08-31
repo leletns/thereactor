@@ -200,16 +200,30 @@ export default function PipelinePage() {
             ? `Espelho do Kommo · ${data.activePipelineName}`
             : "Funil interno — sincronize o Kommo para espelhar o CRM"
         }
+        actions={
+          <>
+            <Button variant="ghost" size="icon-sm" onClick={reload} disabled={loading}>
+              <RefreshCw
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+                strokeWidth={1.5}
+              />
+            </Button>
+            <Button size="sm" onClick={runSync} disabled={syncing}>
+              <Zap className={`h-3.5 w-3.5 ${syncing ? "animate-pulse" : ""}`} strokeWidth={1.5} />
+              {syncing ? "Sincronizando..." : "Sincronizar Kommo"}
+            </Button>
+          </>
+        }
       />
 
-      <div className="flex-1 space-y-6 p-8">
+      <div className="flex-1 space-y-6 p-9">
         {/* Controls */}
         <div className="flex flex-wrap items-center gap-3">
           {data && data.pipelines.length > 1 && (
             <select
               value={pipelineId ?? data.activePipelineId ?? ""}
               onChange={(e) => setPipelineId(Number(e.target.value))}
-              className="h-10 rounded-md border border-hairline bg-surface px-3 text-[13px] font-medium text-ink outline-none focus:border-violet"
+              className="rx-field h-9 px-4 text-[13px] font-medium"
             >
               {data.pipelines.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -225,19 +239,10 @@ export default function PipelinePage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar lead, telefone, responsável..."
-              className="h-10 w-full rounded-md border border-hairline bg-surface pl-9 pr-3 text-[13px] text-ink outline-none placeholder:text-ink-3 focus:border-violet"
+              className="rx-field h-9 w-full pl-10 pr-4 text-[13px]"
             />
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={reload} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            </Button>
-            <Button onClick={runSync} disabled={syncing}>
-              <Zap className={`h-4 w-4 ${syncing ? "animate-pulse" : ""}`} />
-              {syncing ? "Sincronizando..." : "Sincronizar Kommo"}
-            </Button>
-          </div>
         </div>
 
         {notice && (
@@ -318,11 +323,11 @@ export default function PipelinePage() {
                   <section key={column.key} className="w-[286px] shrink-0">
                     <header className="mb-3 flex items-center gap-2">
                       <span
-                        className="h-2.5 w-2.5 rounded-full"
+                        className="h-2 w-2 rounded-pill"
                         style={{ background: column.color }}
                       />
                       <h2 className="text-[13px] font-semibold text-ink">{column.name}</h2>
-                      <span className="ml-auto rounded-sm bg-sunken px-1.5 py-0.5 text-2xs font-semibold text-ink-2">
+                      <span className="ml-auto rounded-pill border border-hairline-strong px-2 py-0.5 text-2xs font-medium text-ink-2">
                         {column.count}
                       </span>
                     </header>
@@ -330,7 +335,7 @@ export default function PipelinePage() {
 
                     <div className="space-y-2.5">
                       {column.leads.length === 0 && (
-                        <div className="rounded-xl border border-dashed border-hairline-strong py-8 text-center text-2xs text-ink-3">
+                        <div className="rounded-xl border border-dashed border-hairline-strong py-10 text-center text-2xs text-ink-3">
                           Vazio
                         </div>
                       )}
@@ -344,10 +349,10 @@ export default function PipelinePage() {
                           <article
                             key={lead.id}
                             onClick={() => setSelected(lead)}
-                            className="group cursor-pointer rounded-xl border border-hairline bg-surface p-3.5 transition-shadow hover:shadow-lift"
+                            className="group cursor-pointer rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-hairline-strong"
                           >
                             <div className="mb-2.5 flex items-start gap-2.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sunken text-2xs font-semibold text-ink-2">
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill border border-hairline-strong text-2xs font-medium text-ink-2">
                                 {initials(lead.name)}
                               </span>
                               <div className="min-w-0 flex-1">
@@ -359,7 +364,7 @@ export default function PipelinePage() {
                                 </p>
                               </div>
                               <span
-                                className={`rounded-sm px-1.5 py-0.5 text-2xs font-bold ${tone.bg} ${tone.fg}`}
+                                className={`rounded-pill px-2 py-0.5 text-2xs font-medium ${tone.bg} ${tone.fg}`}
                               >
                                 {score}
                               </span>
@@ -428,18 +433,18 @@ export default function PipelinePage() {
       {selected && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-ink/20 backdrop-blur-[2px]"
+            className="fixed inset-0 z-40 bg-ink/15 backdrop-blur-[2px]"
             onClick={() => setSelected(null)}
           />
-          <aside className="fixed inset-y-0 right-0 z-50 w-[380px] overflow-y-auto border-l border-hairline bg-surface">
+          <aside className="rx-float fixed inset-y-0 right-0 z-50 w-[390px] overflow-y-auto border-l border-hairline bg-surface">
             <div className="space-y-5 p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-soft text-sm font-semibold text-violet">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-pill bg-wash text-[13px] font-medium text-violet-deep">
                     {initials(selected.name)}
                   </span>
                   <div>
-                    <p className="font-display text-base font-semibold text-ink">
+                    <p className="text-[19px] font-thin tracking-[-0.02em] text-ink">
                       {selected.name}
                     </p>
                     <p className="text-xs text-ink-3">{selected.company ?? "—"}</p>
@@ -465,7 +470,7 @@ export default function PipelinePage() {
                 {selected.source && <Badge variant="neutral">{selected.source}</Badge>}
               </div>
 
-              <div className="rx-panel divide-y divide-hairline">
+              <div className="rx-card divide-y divide-hairline">
                 <Row icon={Wallet} label="Valor" value={formatCurrency(Number(selected.value ?? 0))} />
                 <Row icon={Target} label="Score" value={String(selected.score ?? 0)} />
                 <Row icon={User} label="Responsável" value={selected.responsible_name ?? "—"} />
@@ -479,7 +484,7 @@ export default function PipelinePage() {
               </div>
 
               {selected.notes && (
-                <div className="rx-panel p-4">
+                <div className="rx-card p-5">
                   <p className="rx-eyebrow mb-2">Observações</p>
                   <p className="text-xs leading-relaxed text-ink-2">{selected.notes}</p>
                 </div>
@@ -498,10 +503,10 @@ export default function PipelinePage() {
                         key={column.key}
                         disabled={current || moving === selected.id}
                         onClick={() => moveLead(selected, column)}
-                        className="flex w-full items-center gap-2.5 rounded-lg border border-hairline px-3 py-2.5 text-left text-xs font-medium text-ink transition-colors hover:border-violet hover:bg-violet-soft disabled:cursor-default disabled:bg-sunken disabled:text-ink-3 disabled:hover:border-hairline"
+                        className="flex w-full items-center gap-2.5 rounded-pill border border-hairline-strong px-4 py-2 text-left text-[13px] font-medium text-ink transition-colors hover:border-violet hover:text-violet disabled:cursor-default disabled:border-hairline disabled:bg-sunken disabled:text-ink-3"
                       >
                         <span
-                          className="h-2 w-2 shrink-0 rounded-full"
+                          className="h-1.5 w-1.5 shrink-0 rounded-pill"
                           style={{ background: column.color }}
                         />
                         {column.name}

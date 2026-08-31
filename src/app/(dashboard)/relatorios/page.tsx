@@ -97,17 +97,17 @@ export default function ReportsPage() {
         subtitle="Gerados a partir dos dados reais, com resumo executivo automático"
       />
 
-      <div className="flex-1 space-y-6 p-8">
+      <div className="flex-1 space-y-6 p-9">
         <Card>
           <CardContent className="flex flex-wrap items-center gap-3 p-5">
-            <div className="flex rounded-pill border border-hairline p-1">
+            <div className="flex rounded-pill border border-hairline-strong p-1">
               {PERIODS.map((option) => (
                 <button
                   key={option.key}
                   onClick={() => setPeriod(option.key)}
-                  className={`rounded-pill px-4 py-1.5 text-xs font-medium transition-colors ${
+                  className={`rounded-pill px-4 py-1.5 text-[13px] font-medium transition-colors ${
                     period === option.key
-                      ? "bg-violet text-white"
+                      ? "bg-ink text-white"
                       : "text-ink-2 hover:text-ink"
                   }`}
                 >
@@ -133,7 +133,7 @@ export default function ReportsPage() {
           <Card>
             <CardHeader className="flex-row items-start justify-between">
               <div>
-                <CardTitle className="font-display text-lg">{shown.title}</CardTitle>
+                <CardTitle className="text-[22px] font-thin tracking-[-0.02em]">{shown.title}</CardTitle>
                 <p className="mt-1 text-2xs text-ink-3">
                   {shown.period_start} → {shown.period_end}
                 </p>
@@ -143,14 +143,14 @@ export default function ReportsPage() {
                   {shown.generated_by === "reactor-ai" ? "resumo por IA" : "análise local"}
                 </Badge>
                 {shown.saved === false && <Badge variant="warning">não salvo</Badge>}
-                <Button variant="subtle" size="sm" onClick={() => downloadReport(shown)}>
+                <Button variant="outline" size="sm" onClick={() => downloadReport(shown)}>
                   <Download className="h-3.5 w-3.5" />
                   Baixar
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-5">
-              <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-ink-2">
+              <p className="whitespace-pre-wrap text-[14px] leading-[1.6] text-ink-2">
                 {shown.summary}
               </p>
 
@@ -170,9 +170,9 @@ export default function ReportsPage() {
                   {shown.highlights.map((highlight, i) => (
                     <li
                       key={i}
-                      className="flex gap-2.5 rounded-lg bg-sunken px-3.5 py-2.5 text-xs leading-relaxed text-ink-2"
+                      className="flex gap-3 rounded-xl border border-hairline px-4 py-3 text-[13px] leading-relaxed text-ink-2"
                     >
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet" />
+                      <span className="mt-[7px] h-1 w-1 shrink-0 rounded-pill bg-violet" />
                       {highlight}
                     </li>
                   ))}
@@ -242,9 +242,9 @@ export default function ReportsPage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-hairline px-4 py-3">
+    <div className="rounded-xl border border-hairline px-4 py-3.5">
       <p className="text-2xs text-ink-3">{label}</p>
-      <p className="rx-numeric mt-1 text-base font-semibold text-ink">{value}</p>
+      <p className="rx-figure mt-1.5 text-[19px] text-ink">{value}</p>
     </div>
   );
 }

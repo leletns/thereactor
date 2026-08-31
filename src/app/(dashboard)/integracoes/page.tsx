@@ -113,7 +113,7 @@ export default function IntegrationsPage() {
     <>
       <AppTopbar title="Integrações" subtitle="Portas de entrada e saída do Reactor" />
 
-      <div className="flex-1 space-y-6 p-8">
+      <div className="flex-1 space-y-6 p-9">
         {health.error && <DataError message={health.error} onRetry={health.reload} />}
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -179,7 +179,7 @@ export default function IntegrationsPage() {
                     {(sync.data?.missing ?? []).map((key) => (
                       <li
                         key={key}
-                        className="rounded-md bg-sunken px-3 py-2 font-mono text-2xs text-ink"
+                        className="rounded-pill border border-hairline-strong px-4 py-1.5 font-mono text-2xs text-ink"
                       >
                         {key}
                       </li>
@@ -200,7 +200,7 @@ export default function IntegrationsPage() {
               </Button>
 
               {notice && (
-                <p className="rounded-lg bg-sunken px-3 py-2.5 text-2xs text-ink-2">{notice}</p>
+                <p className="rounded-xl border border-hairline bg-wash/40 px-4 py-3 text-[12px] text-ink-2">{notice}</p>
               )}
             </CardContent>
           </Card>
@@ -225,7 +225,7 @@ export default function IntegrationsPage() {
             <ul className="divide-y divide-hairline">
               {ENDPOINTS.map((endpoint) => (
                 <li key={endpoint.path} className="flex items-center gap-4 px-6 py-2.5">
-                  <span className="w-20 shrink-0 font-mono text-2xs font-semibold text-violet">
+                  <span className="w-20 shrink-0 font-mono text-2xs font-medium text-violet-deep">
                     {endpoint.method}
                   </span>
                   <code className="w-56 shrink-0 font-mono text-2xs text-ink">

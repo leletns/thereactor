@@ -41,7 +41,7 @@ export default function OverviewPage() {
         subtitle="Tudo que está acontecendo na clínica agora"
       />
 
-      <div className="flex-1 space-y-6 p-8">
+      <div className="flex-1 space-y-6 p-9">
         {error && <DataError message={error} onRetry={reload} />}
 
         {!error && (
@@ -86,9 +86,7 @@ export default function OverviewPage() {
               <Card className="lg:col-span-2">
                 <CardHeader className="flex-row items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-soft">
-                      <Sparkles className="h-3.5 w-3.5 text-violet" />
-                    </span>
+<Sparkles className="h-4 w-4 text-violet" strokeWidth={1.5} />
                     <CardTitle>Leitura do copiloto</CardTitle>
                   </div>
                   <Button variant="ghost" size="sm" asChild>
@@ -110,9 +108,9 @@ export default function OverviewPage() {
                       {data.findings.map((finding, i) => (
                         <li
                           key={i}
-                          className="flex gap-2.5 rounded-lg bg-sunken px-3.5 py-2.5 text-xs leading-relaxed text-ink-2"
+                          className="flex gap-3 rounded-xl border border-hairline px-4 py-3 text-[13px] leading-relaxed text-ink-2"
                         >
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet" />
+                          <span className="mt-[7px] h-1 w-1 shrink-0 rounded-pill bg-violet" />
                           {finding}
                         </li>
                       ))}
@@ -127,9 +125,7 @@ export default function OverviewPage() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-soft">
-                      <AlertTriangle className="h-3.5 w-3.5 text-amber" />
-                    </span>
+<AlertTriangle className="h-4 w-4 text-amber" strokeWidth={1.5} />
                     <CardTitle>Leads parados</CardTitle>
                   </div>
                 </CardHeader>
@@ -193,7 +189,7 @@ export default function OverviewPage() {
                             <p className="truncate text-xs font-medium text-ink">{lead.name}</p>
                             <p className="truncate text-2xs text-ink-3">{lead.stage}</p>
                           </div>
-                          <span className="rounded-sm bg-sunken px-1.5 py-0.5 text-2xs font-bold text-ink-2">
+                          <span className="rounded-pill border border-hairline-strong px-2 py-0.5 text-2xs font-medium text-ink-2">
                             {lead.score}
                           </span>
                           <span className="rx-numeric w-24 text-right text-xs font-semibold text-ink">
@@ -231,9 +227,9 @@ export default function OverviewPage() {
                                 {stage.count} · {formatCurrency(stage.value)}
                               </span>
                             </div>
-                            <div className="h-2 overflow-hidden rounded-full bg-sunken">
+                            <div className="h-1.5 overflow-hidden rounded-pill bg-sunken">
                               <div
-                                className="h-full rounded-full bg-violet"
+                                className="h-full rounded-pill bg-violet"
                                 style={{ width: `${(stage.count / max) * 100}%` }}
                               />
                             </div>

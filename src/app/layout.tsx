@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
-import { Poppins, Fraunces } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
+// Stands in for Ppmori: the same geometric proportions across the thin
+// display weight (200) and the functional UI weights (500/600).
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
-  display: "swap",
-});
-
-// Stands in for the editorial serif in the reference: warm, clinical, trustworthy.
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-display",
+  weight: ["200", "400", "500", "600"],
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -28,7 +22,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${poppins.variable} ${fraunces.variable}`}>
+    <html lang="pt-BR" className={inter.variable}>
       <body className="antialiased">{children}</body>
     </html>
   );

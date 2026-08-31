@@ -63,15 +63,20 @@ export default function AgendaPage() {
 
   return (
     <>
-      <AppTopbar title="Agenda" subtitle="Atendimentos, confirmações e comparecimento" />
-
-      <div className="flex-1 space-y-6 p-8">
-        <div className="flex justify-end">
-          <Button variant="ghost" size="icon" onClick={reload} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+      <AppTopbar
+        title="Agenda"
+        subtitle="Atendimentos, confirmações e comparecimento"
+        actions={
+          <Button variant="ghost" size="icon-sm" onClick={reload} disabled={loading}>
+            <RefreshCw
+              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              strokeWidth={1.5}
+            />
           </Button>
-        </div>
+        }
+      />
 
+      <div className="flex-1 space-y-6 p-9">
         {error && <DataError message={error} onRetry={reload} />}
 
         {!error && (
@@ -128,7 +133,7 @@ export default function AgendaPage() {
                   <div className="divide-y divide-hairline">
                     {days.map(([day, items]) => (
                       <div key={day}>
-                        <p className="bg-sunken px-6 py-2 text-2xs font-semibold uppercase tracking-wider text-ink-3">
+                        <p className="border-y border-hairline bg-wash/40 px-7 py-2.5 text-2xs font-medium uppercase tracking-[0.06em] text-ink-2">
                           {new Date(`${day}T00:00:00`).toLocaleDateString("pt-BR", {
                             weekday: "long",
                             day: "2-digit",

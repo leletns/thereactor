@@ -4,59 +4,53 @@
 
 /* ═══════════════════════════════════════════════════════════
    THE REACTOR — Design System
-   White clinical canvas · violet action · pastel pipeline
-   Poppins (UI) + Fraunces (display)
+   Near-monochrome canvas · ink structure · one violet pulse
+   Thin display type, full-pill controls, borders instead of shadows
 ═══════════════════════════════════════════════════════════ */
 
 @layer base {
   :root {
-    /* shadcn bridge — every primitive resolves through these */
-    --background: 220 20% 97%;
-    --foreground: 202 89% 7%;
+    /* shadcn bridge */
+    --background: 260 100% 99%;
+    --foreground: 270 9% 6%;
     --card: 0 0% 100%;
-    --card-foreground: 202 89% 7%;
-    --border: 222 25% 91%;
-    --input: 222 25% 91%;
-    --ring: 240 100% 69%;
-    --primary: 240 100% 69%;
+    --card-foreground: 270 9% 6%;
+    --border: 255 100% 95%;
+    --input: 258 76% 90%;
+    --ring: 258 62% 65%;
+    --primary: 270 9% 6%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 20% 96%;
-    --secondary-foreground: 202 89% 7%;
-    --muted: 220 20% 96%;
-    --muted-foreground: 205 14% 45%;
-    --accent: 240 100% 69%;
+    --secondary: 255 100% 95%;
+    --secondary-foreground: 270 9% 6%;
+    --muted: 255 30% 96%;
+    --muted-foreground: 249 5% 43%;
+    --accent: 258 62% 65%;
     --accent-foreground: 0 0% 100%;
-    --radius: 12px;
+    --radius: 17px;
 
     /* Reactor semantic tokens */
-    --rx-canvas: #f5f6f8;
+    --rx-canvas: #fbfaff;
     --rx-surface: #ffffff;
-    --rx-surface-sunken: #f0f2f7;
-    --rx-ink: #021422;
-    --rx-ink-2: #45566a;
-    --rx-ink-3: #7d8b99;
-    --rx-hairline: #e4e8f0;
-    --rx-hairline-strong: #d0d4e4;
-    --rx-violet: #6161ff;
-    --rx-violet-soft: #eeeeff;
-    --rx-green: #00852e;
-    --rx-green-soft: #e6f6ec;
-    --rx-amber: #b26a00;
-    --rx-amber-soft: #fff3e0;
-    --rx-red: #c8102e;
-    --rx-red-soft: #fdeaed;
+    --rx-sunken: #f4f3f8;
+    --rx-wash: #ebe5ff;
+    --rx-ink: #100f12;
+    --rx-ink-2: #65646e;
+    --rx-ink-3: #787685;
+    --rx-hairline: #ebe5ff;
+    --rx-hairline-strong: #d9cffa;
+    --rx-iris: #8d6fde;
+    --rx-amethyst: #4a3e8a;
 
-    /* Pastel board palette — surfaces only, never text */
-    --rx-mint: #bcfe90;
-    --rx-sky: #abf0ff;
-    --rx-lavender: #eddff7;
-    --rx-periwinkle: #e7ecff;
-    --rx-aqua: #d1faff;
-    --rx-peach: #ffe1c4;
-    --rx-peony: #fcd0f8;
+    /* Status stays functional, never decorative */
+    --rx-grass: #1f7a4d;
+    --rx-grass-soft: #e6f4ec;
+    --rx-amber: #96600b;
+    --rx-amber-soft: #fbf1e2;
+    --rx-rose: #b3324a;
+    --rx-rose-soft: #fceef1;
 
-    --rx-shadow-card: rgba(205, 208, 223, 0.4) 0px 2px 48px 0px;
-    --rx-shadow-lift: rgba(2, 20, 34, 0.1) 0px 6px 28px 0px;
+    /* Elevation belongs to floating artifacts only */
+    --rx-float: 0 16px 40px rgba(16, 15, 18, 0.1), 0 2px 8px rgba(16, 15, 18, 0.05);
   }
 
   * {
@@ -71,71 +65,88 @@
   body {
     background: var(--rx-canvas);
     color: var(--rx-ink);
-    font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.43;
+    letter-spacing: -0.009em;
   }
 
-  h1, h2, h3 {
-    font-family: var(--font-display), Georgia, serif;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+  /* Display type hovers rather than shouts — weight 200 is the voice */
+  h1, h2 {
+    font-weight: 200;
+    letter-spacing: -0.015em;
     color: var(--rx-ink);
   }
 
   ::selection {
-    background: var(--rx-violet);
-    color: #fff;
+    background: var(--rx-wash);
+    color: var(--rx-ink);
   }
 }
 
 @layer components {
-  /* Elevated white plane — the workhorse container */
+  /* Cards are defined by a hairline, never by a shadow */
   .rx-card {
     background: var(--rx-surface);
     border: 1px solid var(--rx-hairline);
-    border-radius: 20px;
-    box-shadow: var(--rx-shadow-card);
+    border-radius: 17px;
   }
 
-  /* Flat variant for dense lists where 48px blur is too much */
-  .rx-panel {
+  .rx-card-lg {
     background: var(--rx-surface);
     border: 1px solid var(--rx-hairline);
-    border-radius: 16px;
+    border-radius: 28px;
+  }
+
+  /* Reserved for artifacts that genuinely float above the page */
+  .rx-float {
+    box-shadow: var(--rx-float);
   }
 
   .rx-eyebrow {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--rx-ink-3);
   }
 
-  .rx-display {
-    font-family: var(--font-display), Georgia, serif;
-    font-weight: 600;
+  /* Large figures inherit the whisper weight; small ones stay legible */
+  .rx-figure {
+    font-weight: 200;
     letter-spacing: -0.03em;
-    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
   }
 
-  /* Tabular figures keep KPI columns from dancing as values change */
   .rx-numeric {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+  }
+
+  /* Every control is a full pill */
+  .rx-field {
+    border-radius: 1440px;
+    background: var(--rx-surface);
+    border: 1px solid var(--rx-hairline-strong);
+    color: var(--rx-ink);
+    transition: border-color 0.15s ease;
+  }
+  .rx-field::placeholder { color: var(--rx-ink-3); }
+  .rx-field:focus {
+    outline: none;
+    border-color: var(--rx-iris);
+    box-shadow: 0 0 0 3px rgba(141, 111, 222, 0.12);
   }
 
   .rx-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
   .rx-scroll::-webkit-scrollbar-track { background: transparent; }
   .rx-scroll::-webkit-scrollbar-thumb {
-    background: #dfe4ee;
-    border-radius: 999px;
+    background: var(--rx-hairline-strong);
+    border-radius: 1440px;
     border: 3px solid var(--rx-canvas);
   }
-  .rx-scroll::-webkit-scrollbar-thumb:hover { background: #cbd2e0; }
+  .rx-scroll::-webkit-scrollbar-thumb:hover { background: var(--rx-iris); }
 }
 
-/* Recharts inherits the page ink instead of its own defaults */
 .recharts-cartesian-axis-tick text { fill: var(--rx-ink-3); font-size: 11px; }
 .recharts-legend-item-text { color: var(--rx-ink-2) !important; font-size: 11px; }

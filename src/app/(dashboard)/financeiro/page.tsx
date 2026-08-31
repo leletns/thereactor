@@ -57,13 +57,14 @@ interface FinanceSummary {
   recent: Transaction[];
 }
 
+// Tooltips genuinely float, so they are one of the few places a shadow belongs.
 const CHART_TOOLTIP = {
   background: "#ffffff",
-  border: "1px solid #e4e8f0",
-  borderRadius: 12,
+  border: "1px solid #ebe5ff",
+  borderRadius: 14,
   fontSize: 12,
-  boxShadow: "rgba(2,20,34,0.10) 0px 6px 28px 0px",
-  color: "#021422",
+  boxShadow: "0 16px 40px rgba(16,15,18,0.10), 0 2px 8px rgba(16,15,18,0.05)",
+  color: "#100f12",
 };
 
 export default function FinancePage() {
@@ -76,15 +77,17 @@ export default function FinancePage() {
       <AppTopbar
         title="Financeiro"
         subtitle={current ? `${current.mes} · dados ao vivo` : "Receitas, despesas e margem"}
+        actions={
+          <Button variant="ghost" size="icon-sm" onClick={reload} disabled={loading}>
+            <RefreshCw
+              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              strokeWidth={1.5}
+            />
+          </Button>
+        }
       />
 
-      <div className="flex-1 space-y-6 p-8">
-        <div className="flex justify-end">
-          <Button variant="ghost" size="icon" onClick={reload} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
-
+      <div className="flex-1 space-y-6 p-9">
         {error && <DataError message={error} onRetry={reload} />}
 
         {!error && (
@@ -141,15 +144,15 @@ export default function FinancePage() {
                       <AreaChart data={data!.monthly} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                         <defs>
                           <linearGradient id="rxReceita" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#00852e" stopOpacity={0.18} />
-                            <stop offset="100%" stopColor="#00852e" stopOpacity={0} />
+                            <stop offset="0%" stopColor="#1f7a4d" stopOpacity={0.18} />
+                            <stop offset="100%" stopColor="#1f7a4d" stopOpacity={0} />
                           </linearGradient>
                           <linearGradient id="rxDespesa" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#6161ff" stopOpacity={0.16} />
-                            <stop offset="100%" stopColor="#6161ff" stopOpacity={0} />
+                            <stop offset="0%" stopColor="#8d6fde" stopOpacity={0.16} />
+                            <stop offset="100%" stopColor="#8d6fde" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#eef1f6" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f2eeff" vertical={false} />
                         <XAxis dataKey="mes" tickLine={false} axisLine={false} />
                         <YAxis
                           tickLine={false}
@@ -161,22 +164,24 @@ export default function FinancePage() {
                           formatter={(v, name) => [formatCurrency(Number(v)), String(name)]}
                         />
                         <Area
+                          isAnimationActive={false}
                           type="monotone"
                           dataKey="receita"
                           name="Receita"
-                          stroke="#00852e"
+                          stroke="#1f7a4d"
                           strokeWidth={2}
                           fill="url(#rxReceita)"
-                          dot={{ r: 3, fill: "#00852e", strokeWidth: 0 }}
+                          dot={{ r: 2.5, fill: "#1f7a4d", strokeWidth: 0 }}
                         />
                         <Area
+                          isAnimationActive={false}
                           type="monotone"
                           dataKey="despesas"
                           name="Despesas"
-                          stroke="#6161ff"
+                          stroke="#8d6fde"
                           strokeWidth={2}
                           fill="url(#rxDespesa)"
-                          dot={{ r: 3, fill: "#6161ff", strokeWidth: 0 }}
+                          dot={{ r: 2.5, fill: "#8d6fde", strokeWidth: 0 }}
                         />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -200,7 +205,7 @@ export default function FinancePage() {
                         layout="vertical"
                         margin={{ top: 4, right: 12, left: 4, bottom: 0 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#eef1f6" horizontal={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f2eeff" horizontal={false} />
                         <XAxis
                           type="number"
                           tickLine={false}
@@ -218,7 +223,7 @@ export default function FinancePage() {
                           contentStyle={CHART_TOOLTIP}
                           formatter={(v) => formatCurrency(Number(v))}
                         />
-                        <Bar dataKey="valor" fill="#6161ff" radius={[0, 6, 6, 0]} maxBarSize={22} />
+                        <Bar isAnimationActive={false} dataKey="valor" fill="#8d6fde" radius={[0, 999, 999, 0]} maxBarSize={16} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
@@ -246,14 +251,14 @@ export default function FinancePage() {
                       return (
                         <li key={tx.id} className="flex items-center gap-3 px-6 py-3">
                           <span
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                              income ? "bg-grass-soft" : "bg-violet-soft"
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-pill ${
+                              income ? "bg-grass-soft" : "bg-wash"
                             }`}
                           >
                             {income ? (
-                              <ArrowUpRight className="h-4 w-4 text-grass" />
+                              <ArrowUpRight className="h-4 w-4 text-grass" strokeWidth={1.5} />
                             ) : (
-                              <ArrowDownRight className="h-4 w-4 text-violet" />
+                              <ArrowDownRight className="h-4 w-4 text-violet-deep" strokeWidth={1.5} />
                             )}
                           </span>
                           <div className="min-w-0 flex-1">
