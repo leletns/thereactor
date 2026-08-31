@@ -1,64 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Cpu, Clock, Activity, Zap } from "lucide-react";
+import { MessageSquare, Cpu, Users, Activity, Zap } from "lucide-react";
 import { NucleusChat } from "@/components/reactor/NucleusChat";
 import { AgentCard } from "@/components/reactor/AgentCard";
 import { MetricCard } from "@/components/reactor/MetricCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { REACTOR_AGENTS, Agent } from "@/lib/nucleus/registry";
+import { useApi } from "@/lib/hooks/useApi";
+import { getRelativeTime } from "@/lib/utils";
 
-const MOCK_A2A_EVENTS = [
-  {
-    id: 1,
-    from: "orchestrator",
-    to: "finance",
-    type: "delegation",
-    task: "Analyze Q1 2025 revenue trends",
-    time: "agora",
-  },
-  {
-    id: 2,
-    from: "sdr",
-    to: "orchestrator",
-    type: "response",
-    task: "Lead TechCorp scored 87/100",
-    time: "12s",
-  },
-  {
-    id: 3,
-    from: "orchestrator",
-    to: "marketing",
-    type: "request",
-    task: "Generate campaign copy for SaaS product",
-    time: "34s",
-  },
-  {
-    id: 4,
-    from: "responder",
-    to: "sdr",
-    type: "delegation",
-    task: "WhatsApp lead from João Silva qualificado",
-    time: "1m",
-  },
-  {
-    id: 5,
-    from: "ops",
-    to: "broadcast",
-    type: "event",
-    task: "Processo de onboarding atualizado",
-    time: "2m",
-  },
-  {
-    id: 6,
-    from: "finance",
-    to: "orchestrator",
-    type: "response",
-    task: "DRE análise concluída — margem 34.2%",
-    time: "3m",
-  },
-];
+interface ReactorEventRow {
+  id: string;
+  created_at: string;
+  type: string;
+  source: string;
+  payload: Record<string, unknown> | null;
+  processed: boolean | null;
+}
+
+interface Overview {
+  messagesToday: number;
+  activeSessions: number;
+  totalLeads: number;
+  agents: { total: number; online: number };
+  events: ReactorEventRow[];
+}
 
 const TYPE_COLORS: Record<string, string> = {
   delegation: "#00f5ff",
@@ -67,24 +35,16 @@ const TYPE_COLORS: Record<string, string> = {
   event: "#fbbf24",
 };
 
+/** Unknown event types still need a colour — fall back to the neutral one. */
+function eventColor(type: string) {
+  return TYPE_COLORS[type] ?? "#8b5cf6";
+}
+
 export default function NucleusPage() {
   const [agents] = useState<Agent[]>(REACTOR_AGENTS);
-  const [a2aEvents, setA2aEvents] = useState(MOCK_A2A_EVENTS);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setA2aEvents((prev) => {
-        const newEvent = {
-          ...MOCK_A2A_EVENTS[Math.floor(Math.random() * MOCK_A2A_EVENTS.length)],
-          id: Date.now(),
-          time: "agora",
-        };
-        return [newEvent, ...prev.slice(0, 9)];
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data, loading } = useApi<Overview>("/api/overview");
+  const a2aEvents = data?.events ?? [];
 
   return (
     <div className="flex h-[calc(100vh-56px)]">
@@ -94,35 +54,35 @@ export default function NucleusPage() {
         <div className="grid grid-cols-4 gap-3 p-4 border-b border-reactor-border">
           <MetricCard
             title="Mensagens Hoje"
-            value={1847}
-            change={12.4}
-            changeLabel="vs ontem"
+            value={data?.messagesToday ?? 0}
+            changeLabel="registradas no banco"
             icon={MessageSquare}
             color="cyan"
+            loading={loading}
           />
           <MetricCard
             title="Agentes Ativos"
-            value={5}
+            value={data?.agents.online ?? 0}
             icon={Cpu}
             color="green"
-            description="de 6 total"
+            description={`de ${data?.agents.total ?? agents.length} total`}
+            loading={loading}
           />
           <MetricCard
-            title="Tempo de Resposta"
-            value="1.2"
-            suffix="s"
-            change={-8.3}
-            changeLabel="mais rápido"
-            icon={Clock}
-            color="purple"
-          />
-          <MetricCard
-            title="Req / Minuto"
-            value={34}
-            change={6.1}
-            changeLabel="média"
+            title="Sessões Ativas"
+            value={data?.activeSessions ?? 0}
             icon={Activity}
+            color="purple"
+            description="conversas em aberto"
+            loading={loading}
+          />
+          <MetricCard
+            title="Leads no CRM"
+            value={data?.totalLeads ?? 0}
+            icon={Users}
             color="orange"
+            description="em reactor_leads"
+            loading={loading}
           />
         </div>
 
@@ -169,6 +129,13 @@ export default function NucleusPage() {
 
           <ScrollArea className="h-full">
             <div className="space-y-2 pr-2">
+              {a2aEvents.length === 0 && (
+                <p className="text-[10px] text-white/25 leading-relaxed">
+                  {loading
+                    ? "Carregando eventos..."
+                    : "Nenhum evento registrado ainda. Eventos aparecem aqui conforme os agentes e integrações gravam em reactor_events."}
+                </p>
+              )}
               {a2aEvents.map((event) => (
                 <motion.div
                   key={event.id}
@@ -181,23 +148,22 @@ export default function NucleusPage() {
                     <span
                       className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded"
                       style={{
-                        color: TYPE_COLORS[event.type],
-                        backgroundColor: `${TYPE_COLORS[event.type]}15`,
+                        color: eventColor(event.type),
+                        backgroundColor: `${eventColor(event.type)}15`,
                       }}
                     >
                       {event.type}
                     </span>
                     <span className="text-[10px] text-white/30 ml-auto">
-                      {event.time}
+                      {getRelativeTime(event.created_at)}
                     </span>
                   </div>
                   <p className="text-[10px] text-white/50">
-                    <span className="text-white/70">{event.from}</span>
-                    {" → "}
-                    <span className="text-white/70">{event.to}</span>
+                    <span className="text-white/70">{event.source}</span>
+                    {event.processed ? " · processado" : " · pendente"}
                   </p>
                   <p className="text-[10px] text-white/40 mt-0.5 line-clamp-1">
-                    {event.task}
+                    {JSON.stringify(event.payload ?? {})}
                   </p>
                 </motion.div>
               ))}

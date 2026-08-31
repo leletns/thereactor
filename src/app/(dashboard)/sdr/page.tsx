@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   TrendingUp,
   DollarSign,
-  Target,
   Bot,
   Plus,
   Phone,
@@ -20,19 +19,59 @@ import {
   Activity,
   X,
   Star,
+  RefreshCw,
 } from "lucide-react";
 import { MetricCard } from "@/components/reactor/MetricCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataEmpty, DataError } from "@/components/reactor/DataState";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatCurrency } from "@/lib/utils";
+import { useApi } from "@/lib/hooks/useApi";
+import { formatCurrency, getRelativeTime } from "@/lib/utils";
 
 type ConsumerProfile = "imediatista" | "pesquisador" | "preco" | "qualidade" | "indefinido";
 type Stage = "prospeccao" | "qualificacao" | "proposta" | "fechamento";
 
+interface LeadRow {
+  id: string;
+  name: string;
+  company: string | null;
+  email: string | null;
+  phone: string | null;
+  status: string;
+  score: number | null;
+  value: number | null;
+  source: string | null;
+  notes: string | null;
+  updated_at: string;
+  kommo_lead_id: number | null;
+  metadata: Record<string, unknown> | null;
+}
+
+interface LeadsPayload {
+  leads: LeadRow[];
+  stats: {
+    total: number;
+    open: number;
+    won: number;
+    pipelineValue: number;
+    wonValue: number;
+    avgScore: number;
+    conversionRate: number;
+    byStage: { stage: string; count: number; value: number }[];
+  };
+}
+
+interface SyncStatus {
+  ready: boolean;
+  missing: string[];
+  subdomain: string | null;
+}
+
+/** A DB row plus the presentation fields the board needs. */
 interface Lead {
-  id: number;
+  id: string;
   name: string;
   company: string;
   value: number;
@@ -48,6 +87,7 @@ interface Lead {
   interventionNote?: string;
   nextAction: string;
   daysSinceContact: number;
+  fromKommo: boolean;
 }
 
 const PROFILE_CONFIG: Record<ConsumerProfile, { label: string; color: string; emoji: string; tip: string }> = {
@@ -83,73 +123,6 @@ const PROFILE_CONFIG: Record<ConsumerProfile, { label: string; color: string; em
   },
 };
 
-const MOCK_LEADS: Lead[] = [
-  {
-    id: 1, name: "Amanda Torres", company: "Clinica Estetica Vida", value: 84000, score: 88,
-    source: "Indicacao", lastContact: "hoje", stage: "qualificacao", avatar: "AT",
-    followUpAttempts: 3, maxAttempts: 8, profile: "imediatista", needsIntervention: true,
-    interventionNote: "Procedimento pode ser necessario mas nao e urgente. Avaliar custo-beneficio antes.",
-    nextAction: "Ligar e entender urgencia real. Perguntar sobre timeline.",
-    daysSinceContact: 0,
-  },
-  {
-    id: 2, name: "Ricardo Mendes", company: "TechVision Ltda", value: 120000, score: 94,
-    source: "LinkedIn", lastContact: "hoje", stage: "fechamento", avatar: "RM",
-    followUpAttempts: 7, maxAttempts: 8, profile: "qualidade", needsIntervention: false,
-    nextAction: "Fechar contrato. Esta na tentativa 7/8.",
-    daysSinceContact: 0,
-  },
-  {
-    id: 3, name: "Felipe Santos", company: "DataCore Sistemas", value: 62000, score: 85,
-    source: "Site", lastContact: "2d", stage: "proposta", avatar: "FS",
-    followUpAttempts: 4, maxAttempts: 8, profile: "pesquisador", needsIntervention: false,
-    nextAction: "Enviar case study detalhado. Ele precisa de dados para decidir.",
-    daysSinceContact: 2,
-  },
-  {
-    id: 4, name: "Mariana Costa", company: "CloudFirst", value: 48000, score: 71,
-    source: "LinkedIn", lastContact: "3d", stage: "proposta", avatar: "MC",
-    followUpAttempts: 2, maxAttempts: 8, profile: "preco", needsIntervention: false,
-    nextAction: "Apresentar calculadora de ROI. Focar no custo da inacao.",
-    daysSinceContact: 3,
-  },
-  {
-    id: 5, name: "Joao Silva", company: "Grupo Alpha", value: 95000, score: 91,
-    source: "Evento", lastContact: "1d", stage: "proposta", avatar: "JS",
-    followUpAttempts: 5, maxAttempts: 8, profile: "imediatista", needsIntervention: false,
-    nextAction: "Demo ao vivo amanha. Mostrar resultados em 48h.",
-    daysSinceContact: 1,
-  },
-  {
-    id: 6, name: "Ana Rodrigues", company: "StartupX", value: 24000, score: 63,
-    source: "Cold Email", lastContact: "4d", stage: "qualificacao", avatar: "AR",
-    followUpAttempts: 1, maxAttempts: 8, profile: "indefinido", needsIntervention: false,
-    nextAction: "Qualificar perfil. Perguntar prazo, budget e criterio de decisao.",
-    daysSinceContact: 4,
-  },
-  {
-    id: 7, name: "Pedro Lima", company: "MegaCorp Brasil", value: 180000, score: 88,
-    source: "Indicacao", lastContact: "2d", stage: "qualificacao", avatar: "PL",
-    followUpAttempts: 3, maxAttempts: 8, profile: "qualidade", needsIntervention: false,
-    nextAction: "Agendar reuniao com decisor. Trazer caso enterprise similar.",
-    daysSinceContact: 2,
-  },
-  {
-    id: 8, name: "Beatriz Rocha", company: "NexusTech", value: 36000, score: 55,
-    source: "Cold Call", lastContact: "5d", stage: "prospeccao", avatar: "BR",
-    followUpAttempts: 0, maxAttempts: 8, profile: "indefinido", needsIntervention: false,
-    nextAction: "Primeira tentativa de contato. WhatsApp ou email.",
-    daysSinceContact: 5,
-  },
-  {
-    id: 9, name: "Lucas Fernandes", company: "DigitalPro", value: 32000, score: 67,
-    source: "Site", lastContact: "3d", stage: "prospeccao", avatar: "LF",
-    followUpAttempts: 2, maxAttempts: 8, profile: "preco", needsIntervention: false,
-    nextAction: "Enviar proposta com 3 opcoes de preco. Ancoragem de valor.",
-    daysSinceContact: 3,
-  },
-];
-
 const KANBAN_COLUMNS = [
   { id: "prospeccao" as Stage, label: "Prospeccao", color: "#8b5cf6" },
   { id: "qualificacao" as Stage, label: "Qualificacao", color: "#00f5ff" },
@@ -157,8 +130,70 @@ const KANBAN_COLUMNS = [
   { id: "fechamento" as Stage, label: "Fechamento", color: "#00ff88" },
 ] as const;
 
+const PROFILES: ConsumerProfile[] = [
+  "imediatista",
+  "pesquisador",
+  "preco",
+  "qualidade",
+  "indefinido",
+];
+
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+/**
+ * Maps a reactor_leads row onto the board. Anything the CRM does not provide
+ * lives in metadata (follow-up count, consumer profile, clinical note) — it is
+ * never invented here.
+ */
+function toLead(row: LeadRow): Lead {
+  const meta = (row.metadata ?? {}) as Record<string, unknown>;
+  const updatedAt = new Date(row.updated_at);
+  const daysSinceContact = Math.max(
+    0,
+    Math.floor((Date.now() - updatedAt.getTime()) / 86_400_000)
+  );
+  const rawProfile = String(meta.profile ?? "");
+  const profile = PROFILES.includes(rawProfile as ConsumerProfile)
+    ? (rawProfile as ConsumerProfile)
+    : "indefinido";
+  const interventionNote =
+    typeof meta.intervention_note === "string" ? meta.intervention_note : undefined;
+
+  return {
+    id: row.id,
+    name: row.name,
+    company: row.company ?? row.source ?? "—",
+    value: Number(row.value ?? 0),
+    score: Number(row.score ?? 0),
+    source: row.source ?? "—",
+    lastContact: getRelativeTime(updatedAt),
+    stage: (KANBAN_COLUMNS.some((c) => c.id === row.status)
+      ? row.status
+      : "prospeccao") as Stage,
+    avatar: initials(row.name) || "??",
+    followUpAttempts: Number(meta.follow_up_attempts ?? 0),
+    maxAttempts: Number(meta.max_follow_up_attempts ?? 8),
+    profile,
+    needsIntervention: Boolean(interventionNote),
+    interventionNote,
+    nextAction:
+      typeof meta.next_action === "string"
+        ? meta.next_action
+        : row.notes ?? "Sem proxima acao registrada.",
+    daysSinceContact,
+    fromKommo: row.kommo_lead_id !== null,
+  };
+}
+
 function FollowUpTracker({ attempts, max }: { attempts: number; max: number }) {
-  const pct = (attempts / max) * 100;
+  const pct = max > 0 ? (attempts / max) * 100 : 0;
   const color = pct >= 87 ? "#ff4444" : pct >= 62 ? "#fbbf24" : "#00f5ff";
   const urgency = pct >= 87 ? "URGENTE" : pct >= 62 ? "ATIVO" : "INICIO";
 
@@ -239,6 +274,11 @@ function LeadDetail({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             </div>
           </div>
           <ProfileBadge profile={lead.profile} />
+          {lead.fromKommo && (
+            <span className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-reactor-cyan/10 text-reactor-cyan border border-reactor-cyan/20">
+              sincronizado do Kommo
+            </span>
+          )}
         </div>
 
         {lead.needsIntervention && (
@@ -296,10 +336,39 @@ function LeadDetail({ lead, onClose }: { lead: Lead; onClose: () => void }) {
 export default function SDRPage() {
   const [showCadencia, setShowCadencia] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
-  const totalPipeline = MOCK_LEADS.reduce((s, l) => s + l.value, 0);
-  const hotLeads = MOCK_LEADS.filter(l => l.followUpAttempts >= 5).length;
-  const needsAction = MOCK_LEADS.filter(l => l.daysSinceContact >= 3).length;
+  const { data, loading, error, reload } = useApi<LeadsPayload>("/api/leads");
+  const syncStatus = useApi<SyncStatus>("/api/sync/kommo");
+
+  const leads = useMemo(() => (data?.leads ?? []).map(toLead), [data]);
+  const stats = data?.stats;
+  const hotLeads = leads.filter((l) => l.followUpAttempts >= 5).length;
+  const needsAction = leads.filter((l) => l.daysSinceContact >= 3).length;
+  const flagged = leads.filter((l) => l.needsIntervention);
+
+  const runKommoSync = async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const response = await fetch("/api/sync/kommo", { method: "POST" });
+      const body = await response.json();
+      if (body?.ok) {
+        setSyncMessage(
+          `${body.data.synced} lead(s) sincronizado(s) do Kommo de ${body.data.leads} encontrado(s).`
+        );
+        reload();
+      } else {
+        setSyncMessage(body?.error ?? "Falha ao sincronizar com o Kommo.");
+      }
+    } catch (err) {
+      setSyncMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSyncing(false);
+      syncStatus.reload();
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 relative">
@@ -312,6 +381,13 @@ export default function SDRPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={reload} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+          <Button variant="outline" size="sm" onClick={runKommoSync} disabled={syncing}>
+            <Zap className={`h-4 w-4 mr-2 ${syncing ? "animate-pulse" : ""}`} />
+            {syncing ? "Sincronizando..." : "Sincronizar Kommo"}
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setShowCadencia(true)}>
             <Bot className="h-4 w-4 mr-2" />
             Gerar Cadencia com IA
@@ -323,105 +399,168 @@ export default function SDRPage() {
         </div>
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-4 gap-4">
-        <MetricCard title="Total de Leads" value={MOCK_LEADS.length} change={8.3} changeLabel="este mes" icon={Users} color="cyan" />
-        <MetricCard title="Follow-ups Pendentes" value={hotLeads} icon={Activity} color="orange" description="5+ tentativas" />
-        <MetricCard title="Taxa de Conversao" value={22.2} suffix="%" change={2.1} icon={TrendingUp} color="green" />
-        <MetricCard title="Receita Pipeline" value={totalPipeline} prefix="R$" change={14.7} icon={DollarSign} color="purple" />
-      </div>
-
-      {/* Alert bar */}
-      {MOCK_LEADS.filter(l => l.needsIntervention).length > 0 && (
-        <div className="rounded-xl p-3 border border-yellow-500/30 bg-yellow-500/5 flex items-center gap-3">
-          <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
-          <div className="flex-1">
-            <span className="text-xs font-semibold text-yellow-400">Atencao: leads com notas clinicas</span>
-            <span className="text-xs text-white/40 ml-2">
-              {MOCK_LEADS.filter(l => l.needsIntervention).map(l => l.name).join(", ")} — clique para ver a nota
-            </span>
-          </div>
-          <Star className="h-4 w-4 text-yellow-500/50" />
+      {/* Sync feedback — says exactly what is missing instead of failing silently */}
+      {syncMessage && (
+        <div className="rounded-xl p-3 border border-reactor-cyan/25 bg-reactor-cyan/5 text-xs text-white/70">
+          {syncMessage}
+        </div>
+      )}
+      {!syncMessage && syncStatus.data && !syncStatus.data.ready && (
+        <div className="rounded-xl p-3 border border-white/10 bg-white/3 text-xs text-white/45">
+          Sincronizacao com o Kommo indisponivel — falta configurar:{" "}
+          <span className="text-white/70">{syncStatus.data.missing.join(", ")}</span>
         </div>
       )}
 
-      {/* Kanban */}
-      <div className="grid grid-cols-4 gap-3">
-        {KANBAN_COLUMNS.map((col) => {
-          const colLeads = MOCK_LEADS.filter((l) => l.stage === col.id);
-          return (
-            <div key={col.id}>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: col.color }} />
-                <span className="text-xs font-semibold text-white/60">{col.label}</span>
-                <span
-                  className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold"
-                  style={{ backgroundColor: `${col.color}15`, color: col.color }}
-                >
-                  {colLeads.length}
+      {error && <DataError message={error} onRetry={reload} />}
+
+      {!error && (
+        <>
+          {/* Metrics */}
+          <div className="grid grid-cols-4 gap-4">
+            <MetricCard
+              title="Total de Leads"
+              value={stats?.total ?? 0}
+              icon={Users}
+              color="cyan"
+              description={`${stats?.open ?? 0} em aberto`}
+              loading={loading}
+            />
+            <MetricCard
+              title="Score Medio"
+              value={stats?.avgScore ?? 0}
+              icon={Activity}
+              color="orange"
+              description="0 a 100"
+              loading={loading}
+            />
+            <MetricCard
+              title="Taxa de Conversao"
+              value={stats?.conversionRate ?? 0}
+              suffix="%"
+              icon={TrendingUp}
+              color="green"
+              description={`${stats?.won ?? 0} ganhos`}
+              loading={loading}
+            />
+            <MetricCard
+              title="Receita Pipeline"
+              value={stats?.pipelineValue ?? 0}
+              prefix="R$"
+              icon={DollarSign}
+              color="purple"
+              description="negocios em aberto"
+              loading={loading}
+            />
+          </div>
+
+          {/* Alert bar */}
+          {flagged.length > 0 && (
+            <div className="rounded-xl p-3 border border-yellow-500/30 bg-yellow-500/5 flex items-center gap-3">
+              <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0" />
+              <div className="flex-1">
+                <span className="text-xs font-semibold text-yellow-400">Atencao: leads com notas clinicas</span>
+                <span className="text-xs text-white/40 ml-2">
+                  {flagged.map((l) => l.name).join(", ")} — clique para ver a nota
                 </span>
               </div>
-
-              <div className="space-y-2">
-                {colLeads.map((lead) => (
-                  <motion.div
-                    key={lead.id}
-                    whileHover={{ y: -2 }}
-                    onClick={() => setSelectedLead(lead)}
-                    className="reactor-card rounded-xl p-3 cursor-pointer group"
-                  >
-                    {lead.needsIntervention && (
-                      <div className="flex items-center gap-1 mb-2 px-1.5 py-0.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 w-fit">
-                        <AlertTriangle className="h-2.5 w-2.5 text-yellow-500" />
-                        <span className="text-[9px] text-yellow-400 font-medium">Nota clinica</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2 mb-2">
-                      <div
-                        className="h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                        style={{ backgroundColor: `${col.color}20` }}
-                      >
-                        {lead.avatar}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-white/80 truncate">{lead.name}</p>
-                        <p className="text-[10px] text-white/40 truncate">{lead.company}</p>
-                      </div>
-                    </div>
-
-                    <div className="mb-2">
-                      <ProfileBadge profile={lead.profile} />
-                    </div>
-
-                    <div className="mb-2">
-                      <ScoreBar score={lead.score} />
-                    </div>
-
-                    <div className="mb-2">
-                      <FollowUpTracker attempts={lead.followUpAttempts} max={lead.maxAttempts} />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold text-white/60">
-                        {formatCurrency(lead.value)}
-                      </span>
-                      <span className="text-[10px] text-white/30 flex items-center gap-1">
-                        <Clock className="h-2.5 w-2.5" />
-                        {lead.lastContact}
-                      </span>
-                    </div>
-
-                    <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-[9px] text-reactor-cyan/70 line-clamp-2">{lead.nextAction}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              <Star className="h-4 w-4 text-yellow-500/50" />
             </div>
-          );
-        })}
-      </div>
+          )}
+
+          {leads.length === 0 ? (
+            <Card>
+              <CardContent className="p-0">
+                <DataEmpty
+                  message={
+                    loading
+                      ? "Carregando leads do Supabase..."
+                      : "Nenhum lead em reactor_leads. Use \"Sincronizar Kommo\" para importar o pipeline do CRM."
+                  }
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            /* Kanban */
+            <div className="grid grid-cols-4 gap-3">
+              {KANBAN_COLUMNS.map((col) => {
+                const colLeads = leads.filter((l) => l.stage === col.id);
+                return (
+                  <div key={col.id}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: col.color }} />
+                      <span className="text-xs font-semibold text-white/60">{col.label}</span>
+                      <span
+                        className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold"
+                        style={{ backgroundColor: `${col.color}15`, color: col.color }}
+                      >
+                        {colLeads.length}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {colLeads.map((lead) => (
+                        <motion.div
+                          key={lead.id}
+                          whileHover={{ y: -2 }}
+                          onClick={() => setSelectedLead(lead)}
+                          className="reactor-card rounded-xl p-3 cursor-pointer group"
+                        >
+                          {lead.needsIntervention && (
+                            <div className="flex items-center gap-1 mb-2 px-1.5 py-0.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 w-fit">
+                              <AlertTriangle className="h-2.5 w-2.5 text-yellow-500" />
+                              <span className="text-[9px] text-yellow-400 font-medium">Nota clinica</span>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 mb-2">
+                            <div
+                              className="h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                              style={{ backgroundColor: `${col.color}20` }}
+                            >
+                              {lead.avatar}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium text-white/80 truncate">{lead.name}</p>
+                              <p className="text-[10px] text-white/40 truncate">{lead.company}</p>
+                            </div>
+                          </div>
+
+                          <div className="mb-2">
+                            <ProfileBadge profile={lead.profile} />
+                          </div>
+
+                          <div className="mb-2">
+                            <ScoreBar score={lead.score} />
+                          </div>
+
+                          <div className="mb-2">
+                            <FollowUpTracker attempts={lead.followUpAttempts} max={lead.maxAttempts} />
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-semibold text-white/60">
+                              {formatCurrency(lead.value)}
+                            </span>
+                            <span className="text-[10px] text-white/30 flex items-center gap-1">
+                              <Clock className="h-2.5 w-2.5" />
+                              {lead.lastContact}
+                            </span>
+                          </div>
+
+                          <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-[9px] text-reactor-cyan/70 line-clamp-2">{lead.nextAction}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Cadencia Modal */}
       <Dialog open={showCadencia} onOpenChange={setShowCadencia}>
@@ -472,7 +611,7 @@ export default function SDRPage() {
             </div>
           </ScrollArea>
           <div className="flex gap-2 justify-between items-center">
-            <p className="text-[11px] text-white/30">Taxa media de exito com 8 tentativas: <span className="text-reactor-green font-semibold">68%</span></p>
+            <p className="text-[11px] text-white/30">Cadencia padrao de 8 tentativas ao longo de 17 dias.</p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowCadencia(false)}>Fechar</Button>
               <Button size="sm">Aplicar Cadencia</Button>

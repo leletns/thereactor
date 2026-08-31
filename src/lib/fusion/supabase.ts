@@ -8,7 +8,11 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
+  // Lets createClient pick the right PostgREST options automatically.
+  __InternalSupabase: {
+    PostgrestVersion: "14.5";
+  };
   public: {
     Tables: {
       reactor_sessions: {
@@ -39,6 +43,7 @@ export interface Database {
           metadata?: Json | null;
           status?: "active" | "closed" | "archived";
         };
+        Relationships: [];
       };
       reactor_messages: {
         Row: {
@@ -71,6 +76,7 @@ export interface Database {
           tokens_used?: number | null;
           metadata?: Json | null;
         };
+        Relationships: [];
       };
       reactor_leads: {
         Row: {
@@ -88,6 +94,10 @@ export interface Database {
           notes: string | null;
           assigned_to: string | null;
           metadata: Json | null;
+          kommo_lead_id: number | null;
+          kommo_pipeline_id: number | null;
+          kommo_status_id: number | null;
+          kommo_synced_at: string | null;
         };
         Insert: {
           id?: string;
@@ -104,6 +114,10 @@ export interface Database {
           notes?: string | null;
           assigned_to?: string | null;
           metadata?: Json | null;
+          kommo_lead_id?: number | null;
+          kommo_pipeline_id?: number | null;
+          kommo_status_id?: number | null;
+          kommo_synced_at?: string | null;
         };
         Update: {
           id?: string;
@@ -120,7 +134,12 @@ export interface Database {
           notes?: string | null;
           assigned_to?: string | null;
           metadata?: Json | null;
+          kommo_lead_id?: number | null;
+          kommo_pipeline_id?: number | null;
+          kommo_status_id?: number | null;
+          kommo_synced_at?: string | null;
         };
+        Relationships: [];
       };
       reactor_transactions: {
         Row: {
@@ -159,6 +178,7 @@ export interface Database {
           reference?: string | null;
           metadata?: Json | null;
         };
+        Relationships: [];
       };
       reactor_tasks: {
         Row: {
@@ -200,6 +220,7 @@ export interface Database {
           category?: string | null;
           metadata?: Json | null;
         };
+        Relationships: [];
       };
       reactor_events: {
         Row: {
@@ -232,15 +253,104 @@ export interface Database {
           processed_at?: string | null;
           session_id?: string | null;
         };
+        Relationships: [];
+      };
+      reactor_appointments: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          external_id: string | null;
+          patient_name: string;
+          patient_phone: string | null;
+          professional: string | null;
+          procedure: string | null;
+          scheduled_at: string;
+          status: "agendado" | "confirmado" | "realizado" | "cancelado" | "faltou";
+          value: number | null;
+          source: string;
+          lead_id: string | null;
+          metadata: Json | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          external_id?: string | null;
+          patient_name: string;
+          patient_phone?: string | null;
+          professional?: string | null;
+          procedure?: string | null;
+          scheduled_at: string;
+          status?: "agendado" | "confirmado" | "realizado" | "cancelado" | "faltou";
+          value?: number | null;
+          source?: string;
+          lead_id?: string | null;
+          metadata?: Json | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          external_id?: string | null;
+          patient_name?: string;
+          patient_phone?: string | null;
+          professional?: string | null;
+          procedure?: string | null;
+          scheduled_at?: string;
+          status?: "agendado" | "confirmado" | "realizado" | "cancelado" | "faltou";
+          value?: number | null;
+          source?: string;
+          lead_id?: string | null;
+          metadata?: Json | null;
+        };
+        Relationships: [];
       };
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl && supabaseAnonKey);
+}
+
+/**
+ * Read-only client (anon key). RLS grants SELECT on every reactor_* table,
+ * so this is enough for every dashboard read path.
+ */
+export function getSupabase() {
+  if (!isSupabaseConfigured()) {
+    throw new Error(
+      "Supabase nao configurado: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    );
+  }
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false },
+  });
+}
+
+/**
+ * Write client (service role key). Only used by server-side sync routes.
+ * Never import this from a "use client" module.
+ */
+export function getSupabaseAdmin() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) {
+    throw new Error(
+      "Escrita indisponivel: defina SUPABASE_SERVICE_ROLE_KEY (Supabase > Project Settings > API)"
+    );
+  }
+  return createClient<Database>(supabaseUrl, serviceKey, {
+    auth: { persistSession: false },
+  });
+}
 
 export type ReactorSession =
   Database["public"]["Tables"]["reactor_sessions"]["Row"];
@@ -254,3 +364,5 @@ export type ReactorTask =
   Database["public"]["Tables"]["reactor_tasks"]["Row"];
 export type ReactorEvent =
   Database["public"]["Tables"]["reactor_events"]["Row"];
+export type ReactorAppointment =
+  Database["public"]["Tables"]["reactor_appointments"]["Row"];

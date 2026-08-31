@@ -1,5 +1,25 @@
 import { NextResponse } from "next/server";
 import { agentRegistry } from "@/lib/nucleus/registry";
+import { getSupabase, isSupabaseConfigured } from "@/lib/fusion/supabase";
+
+export const dynamic = "force-dynamic";
+
+/** Actually round-trips to Postgres instead of only checking env vars. */
+async function pingDatabase() {
+  if (!isSupabaseConfigured()) return { reachable: false, detail: "env vars ausentes" };
+  try {
+    const { error } = await getSupabase()
+      .from("reactor_leads")
+      .select("id", { count: "exact", head: true });
+    if (error) return { reachable: false, detail: error.message };
+    return { reachable: true, detail: null as string | null };
+  } catch (error) {
+    return {
+      reachable: false,
+      detail: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
 
 export async function GET() {
   const agents = agentRegistry.getAll();
@@ -11,8 +31,11 @@ export async function GET() {
     !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const hasEvolution =
     !!process.env.EVOLUTION_API_URL && !!process.env.EVOLUTION_API_KEY;
+  const hasKommo =
+    !!process.env.KOMMO_SUBDOMAIN && !!process.env.KOMMO_ACCESS_TOKEN;
 
-  const status = hasAI ? "operational" : "demo";
+  const database = await pingDatabase();
+  const status = database.reachable ? "operational" : "degraded";
 
   return NextResponse.json({
     status,
@@ -35,12 +58,19 @@ export async function GET() {
     },
     integrations: {
       ai_engine: hasAI ? "configured" : "demo_mode",
-      supabase: hasSupabase ? "configured" : "missing",
+      supabase: !hasSupabase
+        ? "missing"
+        : database.reachable
+        ? "connected"
+        : "unreachable",
+      supabase_error: database.detail,
+      kommo: hasKommo ? "configured" : "missing",
       evolution: hasEvolution ? "configured" : "missing",
     },
     features: {
       ai_chat: hasAI,
-      database: hasSupabase,
+      database: database.reachable,
+      crm_sync: hasKommo && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       whatsapp: hasEvolution,
       a2a_protocol: true,
       mcp_tools: true,

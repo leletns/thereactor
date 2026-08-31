@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Settings2,
   CheckCircle2,
@@ -9,8 +9,10 @@ import {
   ListTodo,
   ArrowRight,
   Circle,
+  XCircle,
   Bot,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 import {
   BarChart,
@@ -22,56 +24,49 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { MetricCard } from "@/components/reactor/MetricCard";
+import { DataEmpty, DataError } from "@/components/reactor/DataState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useApi } from "@/lib/hooks/useApi";
+import { formatCurrency } from "@/lib/utils";
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
-  status: "aberta" | "em_progresso" | "concluida";
+  status: "aberta" | "em_progresso" | "concluida" | "cancelada";
   priority: "baixa" | "media" | "alta" | "critica";
-  category: string;
-  due: string;
-  assignee: string;
-  progress: number;
+  category: string | null;
+  due_date: string | null;
+  assigned_to: string | null;
+  updated_at: string;
 }
 
-const TASKS: Task[] = [
-  { id: 1, title: "Migrar banco de dados para Supabase", status: "em_progresso", priority: "critica", category: "Tech", due: "27/03", assignee: "DevOps", progress: 65 },
-  { id: 2, title: "Implementar webhook Evolution API", status: "em_progresso", priority: "alta", category: "Integração", due: "28/03", assignee: "Backend", progress: 80 },
-  { id: 3, title: "Documentar processos de onboarding", status: "aberta", priority: "media", category: "RH", due: "01/04", assignee: "CS", progress: 0 },
-  { id: 4, title: "Revisar contratos de clientes Q1", status: "aberta", priority: "alta", category: "Jurídico", due: "30/03", assignee: "Legal", progress: 0 },
-  { id: 5, title: "Setup monitoramento Sentry + Datadog", status: "em_progresso", priority: "media", category: "Tech", due: "02/04", assignee: "DevOps", progress: 40 },
-  { id: 6, title: "Atualizar política de privacidade LGPD", status: "concluida", priority: "alta", category: "Compliance", due: "20/03", assignee: "Legal", progress: 100 },
-  { id: 7, title: "Criar playbook de resposta a incidentes", status: "concluida", priority: "media", category: "Tech", due: "22/03", assignee: "DevOps", progress: 100 },
-  { id: 8, title: "Onboarding DataCore Sistemas", status: "concluida", priority: "alta", category: "CS", due: "23/03", assignee: "CS", progress: 100 },
-];
+interface TasksPayload {
+  tasks: Task[];
+  stats: {
+    total: number;
+    abertas: number;
+    emProgresso: number;
+    concluidas: number;
+    canceladas: number;
+    conclusao: number;
+    criticas: number;
+  };
+}
 
-const PRODUCTIVITY_DATA = [
-  { dia: "Seg", tarefas: 12, horas: 48 },
-  { dia: "Ter", tarefas: 8, horas: 36 },
-  { dia: "Qua", tarefas: 15, horas: 52 },
-  { dia: "Qui", tarefas: 11, horas: 44 },
-  { dia: "Sex", tarefas: 9, horas: 38 },
-];
-
-const PROCESS_STEPS = [
-  { id: 1, label: "Lead Recebido", status: "done", time: "0min" },
-  { id: 2, label: "Qualificação SDR", status: "done", time: "~15min" },
-  { id: 3, label: "Demo Agendada", status: "done", time: "~2h" },
-  { id: 4, label: "Proposta Enviada", status: "active", time: "~24h" },
-  { id: 5, label: "Negociação", status: "pending", time: "~3 dias" },
-  { id: 6, label: "Fechamento", status: "pending", time: "~1 dia" },
-];
+interface LeadsPayload {
+  stats: {
+    byStage: { stage: string; count: number; value: number }[];
+  };
+}
 
 const PRIORITY_CONFIG = {
-  critica: { color: "#ff4444", label: "Crítica", bg: "bg-reactor-red/10 border-reactor-red/20" },
+  critica: { color: "#ff4444", label: "Critica", bg: "bg-reactor-red/10 border-reactor-red/20" },
   alta: { color: "#fbbf24", label: "Alta", bg: "bg-yellow-400/10 border-yellow-400/20" },
-  media: { color: "#00f5ff", label: "Média", bg: "bg-reactor-cyan/10 border-reactor-cyan/20" },
+  media: { color: "#00f5ff", label: "Media", bg: "bg-reactor-cyan/10 border-reactor-cyan/20" },
   baixa: { color: "#00ff88", label: "Baixa", bg: "bg-reactor-green/10 border-reactor-green/20" },
 };
 
@@ -79,17 +74,52 @@ const STATUS_CONFIG = {
   aberta: { icon: Circle, color: "text-white/30" },
   em_progresso: { icon: Clock, color: "text-reactor-cyan" },
   concluida: { icon: CheckCircle2, color: "text-reactor-green" },
+  cancelada: { icon: XCircle, color: "text-reactor-red" },
 };
+
+const STAGE_LABELS: Record<string, string> = {
+  prospeccao: "Prospeccao",
+  qualificacao: "Qualificacao",
+  proposta: "Proposta",
+  fechamento: "Fechamento",
+};
+
+const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+
+/** Tasks closed per weekday over the last 7 days, straight from updated_at. */
+function weeklyProductivity(tasks: Task[]) {
+  const today = new Date();
+  const days = Array.from({ length: 7 }, (_, offset) => {
+    const day = new Date(today);
+    day.setDate(today.getDate() - (6 - offset));
+    return { date: day, dia: WEEKDAYS[day.getDay()], tarefas: 0 };
+  });
+
+  for (const task of tasks) {
+    if (task.status !== "concluida") continue;
+    const closed = new Date(task.updated_at);
+    const slot = days.find(
+      (d) => d.date.toDateString() === closed.toDateString()
+    );
+    if (slot) slot.tarefas += 1;
+  }
+
+  return days.map(({ dia, tarefas }) => ({ dia, tarefas }));
+}
 
 export default function OpsPage() {
   const [processInput, setProcessInput] = useState("");
   const [processResult, setProcessResult] = useState("");
   const [optimizing, setOptimizing] = useState(false);
 
-  const openTasks = TASKS.filter((t) => t.status === "aberta").length;
-  const inProgressTasks = TASKS.filter((t) => t.status === "em_progresso").length;
-  const doneTodayTasks = TASKS.filter((t) => t.status === "concluida").length;
-  const efficiency = Math.round((doneTodayTasks / TASKS.length) * 100);
+  const tasksApi = useApi<TasksPayload>("/api/tasks");
+  const leadsApi = useApi<LeadsPayload>("/api/leads");
+
+  const stats = tasksApi.data?.stats;
+  const tasks = useMemo(() => tasksApi.data?.tasks ?? [], [tasksApi.data]);
+  const productivity = useMemo(() => weeklyProductivity(tasks), [tasks]);
+  const stages = leadsApi.data?.stats.byStage ?? [];
+  const activeStageIndex = stages.findIndex((s) => s.count > 0);
 
   const optimizeProcess = async () => {
     if (!processInput.trim()) return;
@@ -142,123 +172,189 @@ export default function OpsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white">Operações</h2>
-          <p className="text-sm text-white/40">Ops Agent — Processos & Eficiência</p>
+          <p className="text-sm text-white/40">Ops Agent — dados ao vivo do Supabase</p>
         </div>
+        <Button
+          onClick={() => {
+            tasksApi.reload();
+            leadsApi.reload();
+          }}
+          variant="ghost"
+          size="sm"
+          disabled={tasksApi.loading}
+        >
+          <RefreshCw className={`h-4 w-4 ${tasksApi.loading ? "animate-spin" : ""}`} />
+        </Button>
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-4 gap-4">
-        <MetricCard title="Tarefas Abertas" value={openTasks + inProgressTasks} icon={ListTodo} color="orange" description={`${inProgressTasks} em andamento`} />
-        <MetricCard title="Concluídas Hoje" value={doneTodayTasks} change={15} icon={CheckCircle2} color="green" />
-        <MetricCard title="Eficiência" value={efficiency} suffix="%" change={4.2} icon={TrendingUp} color="cyan" />
-        <MetricCard title="Tempo Médio" value="2.4" suffix="h" change={-12.8} changeLabel="por tarefa" icon={Clock} color="purple" />
-      </div>
+      {tasksApi.error && <DataError message={tasksApi.error} onRetry={tasksApi.reload} />}
 
-      {/* Task list + Process map */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Tasks */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Lista de Tarefas</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-72">
-              <div className="divide-y divide-reactor-border">
-                {TASKS.map((task) => {
-                  const pConfig = PRIORITY_CONFIG[task.priority];
-                  const sConfig = STATUS_CONFIG[task.status];
-                  const StatusIcon = sConfig.icon;
+      {!tasksApi.error && (
+        <>
+          {/* Metrics */}
+          <div className="grid grid-cols-4 gap-4">
+            <MetricCard
+              title="Tarefas Abertas"
+              value={(stats?.abertas ?? 0) + (stats?.emProgresso ?? 0)}
+              icon={ListTodo}
+              color="orange"
+              description={`${stats?.emProgresso ?? 0} em andamento`}
+              loading={tasksApi.loading}
+            />
+            <MetricCard
+              title="Concluídas"
+              value={stats?.concluidas ?? 0}
+              icon={CheckCircle2}
+              color="green"
+              description={`de ${stats?.total ?? 0} no total`}
+              loading={tasksApi.loading}
+            />
+            <MetricCard
+              title="Taxa de Conclusão"
+              value={stats?.conclusao ?? 0}
+              suffix="%"
+              icon={TrendingUp}
+              color="cyan"
+              loading={tasksApi.loading}
+            />
+            <MetricCard
+              title="Críticas em Aberto"
+              value={stats?.criticas ?? 0}
+              icon={Clock}
+              color="purple"
+              description="prioridade crítica"
+              loading={tasksApi.loading}
+            />
+          </div>
 
-                  return (
-                    <div key={task.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/2 transition-colors">
-                      <StatusIcon className={`h-4 w-4 shrink-0 ${sConfig.color}`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-white/75 font-medium truncate">{task.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-white/30">{task.category}</span>
-                          <span className="text-[10px] text-white/20">·</span>
-                          <span className="text-[10px] text-white/30">vence {task.due}</span>
-                        </div>
-                        {task.status === "em_progresso" && (
-                          <Progress value={task.progress} color="cyan" className="mt-1.5 h-1" />
-                        )}
-                      </div>
-                      <div className="shrink-0">
-                        <span
-                          className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium ${pConfig.bg}`}
-                          style={{ color: pConfig.color }}
-                        >
-                          {pConfig.label}
-                        </span>
-                      </div>
+          {/* Task list + Process map */}
+          <div className="grid grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Lista de Tarefas</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="h-72">
+                  {tasks.length === 0 ? (
+                    <DataEmpty
+                      message={
+                        tasksApi.loading
+                          ? "Carregando tarefas..."
+                          : "Nenhuma tarefa em reactor_tasks. Cadastre tarefas no Supabase ou conecte uma fonte de dados."
+                      }
+                    />
+                  ) : (
+                    <div className="divide-y divide-reactor-border">
+                      {tasks.map((task) => {
+                        const pConfig = PRIORITY_CONFIG[task.priority];
+                        const sConfig = STATUS_CONFIG[task.status];
+                        const StatusIcon = sConfig.icon;
+
+                        return (
+                          <div key={task.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/2 transition-colors">
+                            <StatusIcon className={`h-4 w-4 shrink-0 ${sConfig.color}`} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-white/75 font-medium truncate">{task.title}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] text-white/30">{task.category ?? "sem categoria"}</span>
+                                {task.due_date && (
+                                  <>
+                                    <span className="text-[10px] text-white/20">·</span>
+                                    <span className="text-[10px] text-white/30">
+                                      vence {new Date(`${task.due_date}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="shrink-0">
+                              <span
+                                className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium ${pConfig.bg}`}
+                                style={{ color: pConfig.color }}
+                              >
+                                {pConfig.label}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
 
-        {/* Process Map + Productivity Chart */}
-        <div className="space-y-4">
-          {/* Process Map */}
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <Zap className="h-3.5 w-3.5 text-reactor-cyan" />
-                <CardTitle className="text-sm">Mapa de Processo — Pipeline Comercial</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-1 flex-wrap">
-                {PROCESS_STEPS.map((step, i) => (
-                  <React.Fragment key={step.id}>
-                    <div
-                      className={`flex flex-col items-center px-3 py-2 rounded-lg border text-center min-w-[80px] ${
-                        step.status === "done"
-                          ? "bg-reactor-green/8 border-reactor-green/20"
-                          : step.status === "active"
-                          ? "bg-reactor-cyan/8 border-reactor-cyan/20 animate-pulse-glow"
-                          : "bg-white/3 border-white/8"
-                      }`}
-                    >
-                      <span
-                        className={`text-[10px] font-semibold ${
-                          step.status === "done" ? "text-reactor-green" : step.status === "active" ? "text-reactor-cyan" : "text-white/30"
-                        }`}
-                      >
-                        {step.label}
-                      </span>
-                      <span className="text-[9px] text-white/20 mt-0.5">{step.time}</span>
+            <div className="space-y-4">
+              {/* Pipeline built from the live lead stages */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-3.5 w-3.5 text-reactor-cyan" />
+                    <CardTitle className="text-sm">Mapa de Processo — Pipeline Comercial</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {stages.length === 0 ? (
+                    <DataEmpty message={leadsApi.loading ? "Carregando pipeline..." : "Nenhum lead cadastrado."} />
+                  ) : (
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {stages.map((stage, i) => (
+                        <React.Fragment key={stage.stage}>
+                          <div
+                            className={`flex flex-col items-center px-3 py-2 rounded-lg border text-center min-w-[88px] ${
+                              stage.count === 0
+                                ? "bg-white/3 border-white/8"
+                                : i === activeStageIndex
+                                ? "bg-reactor-cyan/8 border-reactor-cyan/20 animate-pulse-glow"
+                                : "bg-reactor-green/8 border-reactor-green/20"
+                            }`}
+                          >
+                            <span
+                              className={`text-[10px] font-semibold ${
+                                stage.count === 0
+                                  ? "text-white/30"
+                                  : i === activeStageIndex
+                                  ? "text-reactor-cyan"
+                                  : "text-reactor-green"
+                              }`}
+                            >
+                              {STAGE_LABELS[stage.stage] ?? stage.stage}
+                            </span>
+                            <span className="text-[9px] text-white/40 mt-0.5">
+                              {stage.count} {stage.count === 1 ? "lead" : "leads"}
+                            </span>
+                            <span className="text-[9px] text-white/20">{formatCurrency(stage.value)}</span>
+                          </div>
+                          {i < stages.length - 1 && (
+                            <ArrowRight className="h-3 w-3 text-white/15 shrink-0" />
+                          )}
+                        </React.Fragment>
+                      ))}
                     </div>
-                    {i < PROCESS_STEPS.length - 1 && (
-                      <ArrowRight className="h-3 w-3 text-white/15 shrink-0" />
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  )}
+                </CardContent>
+              </Card>
 
-          {/* Productivity Chart */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Produtividade da Semana</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={130}>
-                <BarChart data={PRODUCTIVITY_DATA} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="dia" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} />
-                  <Tooltip contentStyle={{ background: "#141428", border: "1px solid #1e1e3a", borderRadius: 8, fontSize: 11 }} />
-                  <Bar dataKey="tarefas" name="Tarefas" fill="#00f5ff" radius={[4, 4, 0, 0]} opacity={0.8} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Tarefas Concluídas — Últimos 7 Dias</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={130}>
+                    <BarChart data={productivity} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="dia" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} />
+                      <YAxis allowDecimals={false} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} />
+                      <Tooltip contentStyle={{ background: "#141428", border: "1px solid #1e1e3a", borderRadius: 8, fontSize: 11 }} />
+                      <Bar dataKey="tarefas" name="Tarefas" fill="#00f5ff" radius={[4, 4, 0, 0]} opacity={0.8} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* AI Process Optimizer */}
       <Card>
