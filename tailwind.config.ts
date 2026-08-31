@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -16,105 +15,112 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        border:  "hsl(var(--border))",
-        input:   "hsl(var(--input))",
-        ring:    "hsl(var(--ring))",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
         primary: {
-          DEFAULT:    "hsl(var(--primary))",
+          DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT:    "hsl(var(--secondary))",
+          DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
         muted: {
-          DEFAULT:    "hsl(var(--muted))",
+          DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT:    "hsl(var(--accent))",
+          DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
 
-        /* ── L.H.E.X Systems ── */
-        reactor: {
-          cyan:    "#5FFFD7",      // LHEX primary accent (mint-green)
-          green:   "#5FFFD7",
-          purple:  "#7B2FBE",      // jabuticaba lightened for UI contrast
-          jabu:    "#4A0E4E",      // deep jabuticaba brand purple
-          orange:  "#ff6b35",
-          red:     "#ff4444",
-          bg:      "#000000",
-          surface: "#0a0a0c",
-          card:    "#0f0f12",
-          border:  "rgba(255,255,255,0.06)",
-          glow:    "rgba(95,255,215,0.15)",
+        /* ── The Reactor ── */
+        canvas: "#f5f6f8",
+        surface: "#ffffff",
+        sunken: "#f0f2f7",
+        ink: {
+          DEFAULT: "#021422",
+          2: "#45566a",
+          3: "#7d8b99",
+        },
+        hairline: {
+          DEFAULT: "#e4e8f0",
+          strong: "#d0d4e4",
+        },
+        violet: {
+          DEFAULT: "#6161ff",
+          soft: "#eeeeff",
+          deep: "#4a4ae0",
+        },
+        grass: {
+          DEFAULT: "#00852e",
+          soft: "#e6f6ec",
+        },
+        amber: {
+          DEFAULT: "#b26a00",
+          soft: "#fff3e0",
+        },
+        rose: {
+          DEFAULT: "#c8102e",
+          soft: "#fdeaed",
+        },
+        pastel: {
+          mint: "#bcfe90",
+          sky: "#abf0ff",
+          lavender: "#eddff7",
+          periwinkle: "#e7ecff",
+          aqua: "#d1faff",
+          peach: "#ffe1c4",
+          peony: "#fcd0f8",
         },
       },
 
       fontFamily: {
-        sans: ["Montserrat", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "Consolas", "monospace"],
+        sans: ["var(--font-poppins)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
       },
 
-      /* 4px industrial — identidade LHEX */
+      fontSize: {
+        "2xs": ["10px", { lineHeight: "1.4" }],
+      },
+
       borderRadius: {
-        DEFAULT: "4px",
-        sm:    "2px",
-        md:    "4px",
-        lg:    "6px",
-        xl:    "8px",
-        "2xl": "10px",
-        full:  "9999px",
-      },
-
-      backgroundImage: {
-        "reactor-gradient":
-          "linear-gradient(135deg, #000000 0%, #0a0a0c 50%, #0f0f12 100%)",
-        "glow-green":
-          "radial-gradient(ellipse at center, rgba(95,255,215,0.12) 0%, transparent 70%)",
-        "glow-purple":
-          "radial-gradient(ellipse at center, rgba(74,14,78,0.18) 0%, transparent 70%)",
+        DEFAULT: "10px",
+        sm: "6px",
+        md: "10px",
+        lg: "12px",
+        xl: "16px",
+        "2xl": "20px",
+        "3xl": "24px",
+        pill: "160px",
+        full: "9999px",
       },
 
       boxShadow: {
-        "reactor-cyan":
-          "0 0 20px rgba(95,255,215,0.35), 0 0 60px rgba(95,255,215,0.12)",
-        "reactor-green":
-          "0 0 20px rgba(95,255,215,0.35), 0 0 60px rgba(95,255,215,0.12)",
-        "reactor-purple":
-          "0 0 20px rgba(123,47,190,0.4),  0 0 60px rgba(123,47,190,0.15)",
-        "reactor-card":
-          "0 4px 24px rgba(0,0,0,0.7), 0 0 0 1px rgba(95,255,215,0.08)",
-        "lhex-glow":
-          "0 0 30px rgba(95,255,215,0.25), 0 0 80px rgba(95,255,215,0.08)",
-        "lhex-panel":
-          "0 8px 32px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)",
+        card: "rgba(205, 208, 223, 0.4) 0px 2px 48px 0px",
+        lift: "rgba(2, 20, 34, 0.10) 0px 6px 28px 0px",
+        pop: "rgba(2, 20, 34, 0.14) 0px 10px 40px 0px",
       },
 
       animation: {
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
-        float:        "float 6s ease-in-out infinite",
-        "fade-in":    "fade-in 0.5s ease-out",
-        "slide-up":   "slide-up 0.4s ease-out",
+        "fade-in": "fade-in 0.35s ease-out",
+        "slide-up": "slide-up 0.35s ease-out",
+        shimmer: "shimmer 1.6s linear infinite",
       },
 
       keyframes: {
-        "pulse-glow": {
-          "0%, 100%": { opacity: "0.6", filter: "brightness(1)" },
-          "50%":       { opacity: "1",   filter: "brightness(1.4)" },
-        },
-        float: {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%":      { transform: "translateY(-8px)" },
-        },
         "fade-in": {
-          "0%":   { opacity: "0" },
+          "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
         "slide-up": {
-          "0%":   { opacity: "0", transform: "translateY(20px)" },
+          "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-400px 0" },
+          "100%": { backgroundPosition: "400px 0" },
         },
       },
     },

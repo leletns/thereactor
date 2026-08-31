@@ -1,176 +1,81 @@
-# THE REACTOR — lhex systems
+# The Reactor
 
-**O Sistema Operacional de IA para Empresas do Futuro**
+Sistema operacional da clínica: comercial, financeiro, agenda, relatórios e copiloto de IA
+em um lugar só — com o pipeline espelhando o Kommo em tempo real.
 
-The Reactor is a sovereign AI orchestration platform built by lhex systems. It replaces traditional business functions with intelligent, autonomous AI agents that communicate with each other via a proprietary A2A (Agent-to-Agent) protocol.
+## O que ele faz
 
----
+| Módulo | O que entrega |
+|---|---|
+| **Visão geral** | KPIs do funil, financeiro e agenda + leitura automática da operação |
+| **Pipeline** | Quadro com as colunas reais do Kommo. Mover um card grava a etapa no CRM |
+| **Financeiro** | Receita, despesa, margem, série mensal e categorias, direto do banco |
+| **Agenda** | Atendimentos por dia, taxa de comparecimento e receita prevista |
+| **Relatórios** | Relatório diário/semanal/mensal gerado dos dados, com resumo executivo |
+| **Copiloto** | Pergunta em português sobre o funil, o caixa e a agenda |
+| **Integrações** | Estado de cada conexão e o catálogo completo da API |
 
-## Architecture
+## Espelho do Kommo
 
+O Reactor não inventa um funil próprio. A sincronização traz do Kommo:
+
+- **pipelines** (`reactor_pipelines`)
+- **etapas com cor e ordem** (`reactor_pipeline_statuses`) — são as colunas do quadro
+- **leads** com valor, responsável, contato e etapa (`reactor_leads`)
+
+Mover um card chama `POST /api/leads/move`, que **grava no Kommo primeiro**. Se o CRM recusar,
+nada muda localmente — o quadro nunca mostra uma etapa que o Kommo não tem.
+
+## API
+
+Todas as rotas respondem `{ ok: true, data }` ou `{ ok: false, error }`.
+
+| Método | Rota | O que faz |
+|---|---|---|
+| GET | `/api/health` | Status do sistema; faz ping real no Postgres |
+| GET | `/api/board` | Quadro do pipeline com as colunas do Kommo |
+| POST | `/api/leads/move` | Move um lead de etapa e replica no Kommo |
+| GET | `/api/leads` | Leads e métricas do funil |
+| GET/POST | `/api/sync/kommo` | Status e execução do espelho |
+| GET | `/api/finance/summary` | Série mensal, categorias, totais |
+| GET | `/api/transactions` | Lançamentos financeiros |
+| GET | `/api/appointments` | Agenda e taxa de comparecimento |
+| GET | `/api/tasks` | Tarefas operacionais |
+| GET/POST | `/api/ai/assist` | Contexto e respostas do copiloto |
+| GET/POST | `/api/reports` | Histórico e geração de relatórios |
+| POST | `/api/webhook/evolution` | Entrada de mensagens do WhatsApp |
+
+### Relatório automático
+
+`POST /api/reports` com `{"period":"diario"|"semanal"|"mensal"}` gera e persiste o relatório.
+Agende com Vercel Cron, n8n ou qualquer scheduler:
+
+```json
+{ "crons": [{ "path": "/api/reports", "schedule": "0 11 * * 1" }] }
 ```
-THE REACTOR
-├── Nucleus (Orchestrator)      — Routes, coordinates, delegates
-├── Finance Agent               — DRE, cash flow, insights
-├── SDR Agent                   — Lead scoring, pipelines, cadences
-├── Marketing Agent             — Copy, campaigns, content
-├── Ops Agent                   — Processes, tasks, automation
-├── Responder Agent             — WhatsApp, multi-channel
-│
-├── A2A Protocol                — Inter-agent communication
-├── MCP Tools                   — 6 specialized tool definitions
-├── Evolution API               — WhatsApp integration
-└── Supabase                    — Persistent storage
-```
 
-## Tech Stack
-
-- **Framework**: Next.js 14 App Router + TypeScript
-- **AI**: Reactor Intelligence Engine (`groq-sdk`)
-- **Database**: Supabase (`@supabase/supabase-js`)
-- **UI**: Tailwind CSS + Radix UI + Framer Motion
-- **Charts**: Recharts
-- **WhatsApp**: Evolution API
-
----
-
-## Getting Started
-
-### 1. Clone and Install
+## Rodando
 
 ```bash
-git clone <repo>
-cd thereactor
 npm install
-```
-
-### 2. Configure Environment
-
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` and fill in:
-
-```env
-ANTHROPIC_API_KEY=sk-ant-api03-...
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-EVOLUTION_API_URL=http://localhost:8080
-EVOLUTION_API_KEY=your-key
-```
-
-### 3. Set Up Database
-
-Run the SQL migration in your Supabase project:
-
-```bash
-# Via Supabase CLI:
-supabase db push
-
-# Or manually paste:
-# supabase/migrations/001_reactor_schema.sql
-```
-
-### 4. Start Development
-
-```bash
+cp .env.example .env.local   # preencha as variáveis
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Migrations em `supabase/migrations/` — aplique em ordem no SQL Editor do Supabase.
 
----
+## Variáveis
 
-## Modules
+| Variável | Obrigatória | Para quê |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | sim | Leitura de todos os dados |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | sim | Leitura (RLS libera SELECT) |
+| `SUPABASE_SERVICE_ROLE_KEY` | para escrever | Sync, mover lead, salvar relatório |
+| `KOMMO_SUBDOMAIN` | para o CRM | `https://<subdomain>.kommo.com` |
+| `KOMMO_ACCESS_TOKEN` | para o CRM | Token de longa duração da integração |
+| `GROQ_API_KEY` | opcional | Redação por IA; sem ela a análise é determinística |
+| `REACTOR_CLINIC_CONTEXT` | opcional | Contexto do negócio entregue ao copiloto |
 
-| Route | Module | Description |
-|-------|---------|-------------|
-| `/` | Landing | Hero page with feature overview |
-| `/nucleus` | Nucleus | Central AI chat with all agents |
-| `/finance` | Financeiro | Financial analysis & charts |
-| `/sdr` | SDR | Lead pipeline & kanban |
-| `/marketing` | Marketing | Campaigns & copy generator |
-| `/ops` | Operações | Tasks & process optimizer |
-| `/agents` | Agent Studio | Configure & monitor agents |
-| `/channels` | Canais | WhatsApp & integrations |
-
-## API Endpoints
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| `POST` | `/api/chat` | Stream AI responses from any agent |
-| `GET` | `/api/agents` | List all agents and their status |
-| `POST` | `/api/agents` | Update agent status |
-| `POST` | `/api/webhook/evolution` | Receive WhatsApp messages |
-| `GET` | `/api/health` | System health check |
-
-## A2A Protocol
-
-Agents communicate via typed messages:
-
-```typescript
-interface A2AMessage {
-  id: string;
-  from: AgentRole;
-  to: AgentRole | 'broadcast';
-  type: 'request' | 'response' | 'event' | 'delegation';
-  payload: {
-    task?: string;
-    result?: string;
-    data?: unknown;
-    priority?: 'low' | 'medium' | 'high' | 'critical';
-  };
-  timestamp: string;
-  sessionId: string;
-}
-```
-
-## MCP Tools
-
-6 specialized tools available to agents:
-
-- `analyze_financials` — Financial analysis with recommendations
-- `score_lead` — Lead scoring 0-100 with BANT/MEDDIC
-- `generate_marketing_copy` — Multi-channel copy variants
-- `optimize_process` — Process optimization with ROI
-- `send_whatsapp` — Send messages via Evolution API
-- `query_database` — Natural language database queries
-
-## WhatsApp Integration
-
-Configure Evolution API and set webhook to:
-```
-POST /api/webhook/evolution
-```
-
-The Responder agent handles all incoming messages automatically.
-
----
-
-## Production Deployment
-
-### Vercel
-
-```bash
-vercel --prod
-```
-
-Set environment variables in Vercel dashboard.
-
-### Docker
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY . .
-RUN npm ci && npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
----
-
-## License
-
-Proprietary — lhex systems &copy; 2025
+Sem `GROQ_API_KEY` o copiloto continua funcionando: os números são os mesmos, calculados no
+servidor, só não há redação por modelo. Sem `SUPABASE_SERVICE_ROLE_KEY` o sistema fica em modo
+leitura e diz exatamente qual variável falta em vez de falhar em silêncio.

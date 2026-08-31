@@ -98,6 +98,9 @@ export type Database = {
           kommo_pipeline_id: number | null;
           kommo_status_id: number | null;
           kommo_synced_at: string | null;
+          kommo_status_name: string | null;
+          responsible_name: string | null;
+          last_activity_at: string | null;
         };
         Insert: {
           id?: string;
@@ -118,6 +121,9 @@ export type Database = {
           kommo_pipeline_id?: number | null;
           kommo_status_id?: number | null;
           kommo_synced_at?: string | null;
+          kommo_status_name?: string | null;
+          responsible_name?: string | null;
+          last_activity_at?: string | null;
         };
         Update: {
           id?: string;
@@ -138,6 +144,9 @@ export type Database = {
           kommo_pipeline_id?: number | null;
           kommo_status_id?: number | null;
           kommo_synced_at?: string | null;
+          kommo_status_name?: string | null;
+          responsible_name?: string | null;
+          last_activity_at?: string | null;
         };
         Relationships: [];
       };
@@ -306,6 +315,156 @@ export type Database = {
         };
         Relationships: [];
       };
+      reactor_pipelines: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          kommo_pipeline_id: number;
+          name: string;
+          sort: number;
+          is_main: boolean;
+          synced_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          kommo_pipeline_id: number;
+          name: string;
+          sort?: number;
+          is_main?: boolean;
+          synced_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          kommo_pipeline_id?: number;
+          name?: string;
+          sort?: number;
+          is_main?: boolean;
+          synced_at?: string | null;
+        };
+        Relationships: [];
+      };
+      reactor_pipeline_statuses: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          kommo_status_id: number;
+          kommo_pipeline_id: number;
+          name: string;
+          color: string | null;
+          sort: number;
+          type: number;
+          synced_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          kommo_status_id: number;
+          kommo_pipeline_id: number;
+          name: string;
+          color?: string | null;
+          sort?: number;
+          type?: number;
+          synced_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          kommo_status_id?: number;
+          kommo_pipeline_id?: number;
+          name?: string;
+          color?: string | null;
+          sort?: number;
+          type?: number;
+          synced_at?: string | null;
+        };
+        Relationships: [];
+      };
+      reactor_reports: {
+        Row: {
+          id: string;
+          created_at: string;
+          period: "diario" | "semanal" | "mensal";
+          period_start: string;
+          period_end: string;
+          title: string;
+          summary: string | null;
+          metrics: Json;
+          highlights: Json;
+          generated_by: string;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          period?: "diario" | "semanal" | "mensal";
+          period_start: string;
+          period_end: string;
+          title: string;
+          summary?: string | null;
+          metrics?: Json;
+          highlights?: Json;
+          generated_by?: string;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          period?: "diario" | "semanal" | "mensal";
+          period_start?: string;
+          period_end?: string;
+          title?: string;
+          summary?: string | null;
+          metrics?: Json;
+          highlights?: Json;
+          generated_by?: string;
+        };
+        Relationships: [];
+      };
+      reactor_lead_activity: {
+        Row: {
+          id: string;
+          created_at: string;
+          lead_id: string | null;
+          kommo_lead_id: number | null;
+          kind: string;
+          from_status: string | null;
+          to_status: string | null;
+          note: string | null;
+          actor: string;
+          metadata: Json | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          lead_id?: string | null;
+          kommo_lead_id?: number | null;
+          kind: string;
+          from_status?: string | null;
+          to_status?: string | null;
+          note?: string | null;
+          actor?: string;
+          metadata?: Json | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          lead_id?: string | null;
+          kommo_lead_id?: number | null;
+          kind?: string;
+          from_status?: string | null;
+          to_status?: string | null;
+          note?: string | null;
+          actor?: string;
+          metadata?: Json | null;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
@@ -366,3 +525,11 @@ export type ReactorEvent =
   Database["public"]["Tables"]["reactor_events"]["Row"];
 export type ReactorAppointment =
   Database["public"]["Tables"]["reactor_appointments"]["Row"];
+export type ReactorPipeline =
+  Database["public"]["Tables"]["reactor_pipelines"]["Row"];
+export type ReactorPipelineStatus =
+  Database["public"]["Tables"]["reactor_pipeline_statuses"]["Row"];
+export type ReactorReport =
+  Database["public"]["Tables"]["reactor_reports"]["Row"];
+export type ReactorLeadActivity =
+  Database["public"]["Tables"]["reactor_lead_activity"]["Row"];

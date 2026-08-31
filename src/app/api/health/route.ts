@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { agentRegistry } from "@/lib/nucleus/registry";
+import { apiOk } from "@/lib/api";
 import { getSupabase, isSupabaseConfigured } from "@/lib/fusion/supabase";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,8 @@ export async function GET() {
   const database = await pingDatabase();
   const status = database.reachable ? "operational" : "degraded";
 
-  return NextResponse.json({
+  // Same { ok, data } envelope as every other route, so one client works for all.
+  return apiOk({
     status,
     reactor: {
       version: "1.0.0",

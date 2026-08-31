@@ -6,38 +6,30 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded font-sans text-sm font-semibold tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-reactor-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-pill font-sans font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default:
-          "bg-reactor-cyan text-black hover:brightness-110 shadow-reactor-cyan hover:shadow-lhex-glow hover:scale-[1.02]",
-        ghost:
-          "text-white/60 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/8",
+        // The single filled action colour — at most one per view.
+        default: "bg-violet text-white hover:bg-violet-deep shadow-[0_1px_2px_rgba(2,20,34,0.08)]",
         outline:
-          "border border-reactor-border text-white/60 hover:text-reactor-cyan hover:border-reactor-cyan/40 hover:bg-reactor-cyan/5 bg-transparent",
-        destructive:
-          "bg-reactor-red/15 text-reactor-red border border-reactor-red/25 hover:bg-reactor-red/25",
-        secondary:
-          "bg-reactor-surface text-white/60 hover:text-white hover:bg-reactor-card border border-reactor-border",
-        success:
-          "bg-reactor-green/15 text-reactor-green border border-reactor-green/25 hover:bg-reactor-green/25",
-        purple:
-          "bg-reactor-purple/15 text-reactor-purple border border-reactor-purple/25 hover:bg-reactor-purple/25",
+          "border border-ink/25 bg-transparent text-ink hover:bg-ink/[0.04] hover:border-ink/40",
+        ghost: "bg-transparent text-ink-2 hover:bg-ink/[0.05] hover:text-ink",
+        soft: "bg-violet-soft text-violet hover:bg-violet/15",
+        success: "bg-grass text-white hover:brightness-110",
+        destructive: "bg-rose-soft text-rose hover:bg-rose/15",
+        subtle:
+          "border border-hairline bg-surface text-ink-2 hover:text-ink hover:border-hairline-strong",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm:      "h-8 px-3 text-xs",
-        lg:      "h-12 px-6 text-base",
-        xl:      "h-14 px-8 text-lg",
-        icon:    "h-10 w-10",
+        default: "h-10 px-5 text-sm",
+        sm: "h-8 px-4 text-xs",
+        lg: "h-12 px-7 text-base",
+        icon: "h-10 w-10",
         "icon-sm": "h-8 w-8",
       },
     },
-    defaultVariants: {
-      variant: "default",
-      size:    "default",
-    },
+    defaultVariants: { variant: "default", size: "default" },
   }
 );
 
@@ -51,11 +43,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
     );
   }
 );
