@@ -1,6 +1,10 @@
 import { agentRegistry } from "@/lib/nucleus/registry";
 import { apiOk } from "@/lib/api";
-import { getSupabase, isSupabaseConfigured } from "@/lib/fusion/supabase";
+import {
+  getSupabase,
+  isSupabaseConfigured,
+  supabaseEnvReport,
+} from "@/lib/fusion/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +30,8 @@ export async function GET() {
   const onlineAgents = agents.filter((a) => a.status !== "offline");
 
   const hasAI = !!process.env.GROQ_API_KEY;
-  const hasSupabase =
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseEnv = supabaseEnvReport();
+  const hasSupabase = supabaseEnv.url && supabaseEnv.anonKey;
   const hasEvolution =
     !!process.env.EVOLUTION_API_URL && !!process.env.EVOLUTION_API_KEY;
   const hasKommo =
@@ -65,6 +68,9 @@ export async function GET() {
         ? "connected"
         : "unreachable",
       supabase_error: database.detail,
+      // Which variables the running process can actually see, so a missing
+      // one is diagnosed from the page instead of guessed at in the host.
+      supabase_env: supabaseEnv,
       kommo: hasKommo ? "configured" : "missing",
       evolution: hasEvolution ? "configured" : "missing",
     },

@@ -15,6 +15,7 @@ interface HealthPayload {
     ai_engine: string;
     supabase: string;
     supabase_error: string | null;
+    supabase_env: { url: boolean; anonKey: boolean; serviceRoleKey: boolean };
     kommo: string;
     evolution: string;
   };
@@ -132,7 +133,15 @@ export default function IntegrationsPage() {
                 <ul className="divide-y divide-hairline">
                   <IntegrationRow
                     name="Supabase"
-                    description="Banco de dados e origem de tudo que aparece na tela"
+                    description={
+                      integrations?.supabase_env
+                        ? `URL ${integrations.supabase_env.url ? "ok" : "faltando"} · anon key ${
+                            integrations.supabase_env.anonKey ? "ok" : "faltando"
+                          } · service role ${
+                            integrations.supabase_env.serviceRoleKey ? "ok" : "faltando"
+                          }`
+                        : "Banco de dados e origem de tudo que aparece na tela"
+                    }
                     state={integrations?.supabase ?? "missing"}
                     detail={integrations?.supabase_error}
                   />

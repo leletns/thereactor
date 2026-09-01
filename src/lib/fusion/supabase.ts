@@ -473,11 +473,35 @@ export type Database = {
   };
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+/**
+ * Next.js inlines every NEXT_PUBLIC_* reference at BUILD time, so a variable
+ * added to the host after the build stays undefined until the next build.
+ * Nothing here runs in the browser — every caller is an /api route handler —
+ * so the unprefixed names are read at runtime and take effect on restart,
+ * with no rebuild required. The NEXT_PUBLIC_ names stay supported first for
+ * compatibility with existing .env files.
+ */
+function readSupabaseEnv() {
+  return {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "",
+    anonKey:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "",
+  };
+}
 
 export function isSupabaseConfigured(): boolean {
-  return Boolean(supabaseUrl && supabaseAnonKey);
+  const { url, anonKey } = readSupabaseEnv();
+  return Boolean(url && anonKey);
+}
+
+/** Which of the accepted names are actually present — used by /api/health. */
+export function supabaseEnvReport() {
+  const { url, anonKey } = readSupabaseEnv();
+  return {
+    url: Boolean(url),
+    anonKey: Boolean(anonKey),
+    serviceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+  };
 }
 
 /**
@@ -485,12 +509,17 @@ export function isSupabaseConfigured(): boolean {
  * so this is enough for every dashboard read path.
  */
 export function getSupabase() {
-  if (!isSupabaseConfigured()) {
+  const { url, anonKey } = readSupabaseEnv();
+  if (!url || !anonKey) {
+    const missing = [!url && "SUPABASE_URL", !anonKey && "SUPABASE_ANON_KEY"]
+      .filter(Boolean)
+      .join(" e ");
     throw new Error(
-      "Supabase nao configurado: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      `Supabase nao configurado: falta ${missing}. Se voce usa os nomes NEXT_PUBLIC_*, ` +
+        "eles so entram em vigor apos um novo build (Redeploy sem cache na Vercel)."
     );
   }
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createClient<Database>(url, anonKey, {
     auth: { persistSession: false },
   });
 }
@@ -500,13 +529,14 @@ export function getSupabase() {
  * Never import this from a "use client" module.
  */
 export function getSupabaseAdmin() {
+  const { url } = readSupabaseEnv();
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceKey) {
+  if (!url || !serviceKey) {
     throw new Error(
       "Escrita indisponivel: defina SUPABASE_SERVICE_ROLE_KEY (Supabase > Project Settings > API)"
     );
   }
-  return createClient<Database>(supabaseUrl, serviceKey, {
+  return createClient<Database>(url, serviceKey, {
     auth: { persistSession: false },
   });
 }
