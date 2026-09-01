@@ -1,35 +1,29 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
+
+// Stands in for Ppmori: the same geometric proportions across the thin
+// display weight (200) and the functional UI weights (500/600).
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["200", "400", "500", "600"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "The Reactor — L.H.E.X Systems",
+  title: "The Reactor — Sistema da Clínica",
   description:
-    "Plataforma soberana de orquestração inteligente. Substitua financeiro, vendas, marketing e operações com agentes autônomos.",
-  keywords: ["IA", "agentes", "empresas", "automação", "lhex systems", "reactor"],
-  openGraph: {
-    title: "The Reactor — L.H.E.X Systems",
-    description: "O sistema operacional de IA para empresas do futuro.",
-    type: "website",
-  },
+    "Comercial, financeiro, agenda e IA em um só lugar. Espelho do Kommo em tempo real com relatórios automáticos.",
+  keywords: ["clínica", "CRM", "Kommo", "pipeline", "financeiro", "IA", "reactor"],
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="antialiased font-sans">
-        <Providers>{children}</Providers>
-      </body>
+    <html lang="pt-BR" className={inter.variable}>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

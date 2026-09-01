@@ -1,0 +1,290 @@
+/**
+ * Kommo CRM (amoCRM) API v4 client.
+ *
+ * The Reactor mirrors Kommo rather than inventing its own funnel: pipelines,
+ * statuses and their colours all come from the CRM, and stage changes made
+ * here are written back so the two never drift.
+ *
+ * Auth uses a long-lived access token:
+ *   Kommo > Settings > Integrations > your integration > Access token
+ */
+
+export interface KommoConfig {
+  subdomain: string;
+  token: string;
+}
+
+export interface KommoLead {
+  id: number;
+  name: string;
+  price: number | null;
+  status_id: number;
+  pipeline_id: number;
+  created_at: number;
+  updated_at: number;
+  responsible_user_id?: number;
+  _embedded?: {
+    contacts?: { id: number; is_main?: boolean }[];
+    tags?: { id: number; name: string }[];
+  };
+}
+
+export interface KommoContact {
+  id: number;
+  name: string;
+  custom_fields_values?: {
+    field_code?: string | null;
+    values: { value: string }[];
+  }[];
+}
+
+export interface KommoStatus {
+  id: number;
+  name: string;
+  sort: number;
+  pipeline_id: number;
+  color?: string;
+  type: number;
+}
+
+export interface KommoPipeline {
+  id: number;
+  name: string;
+  sort: number;
+  is_main: boolean;
+  _embedded?: { statuses?: KommoStatus[] };
+}
+
+export interface KommoUser {
+  id: number;
+  name: string;
+}
+
+/** Kommo reserves these two ids across every pipeline. */
+export const WON_STATUS_ID = 142;
+export const LOST_STATUS_ID = 143;
+
+export type ReactorStatus =
+  | "prospeccao"
+  | "qualificacao"
+  | "proposta"
+  | "fechamento"
+  | "ganho"
+  | "perdido";
+
+export function readKommoConfig(): KommoConfig {
+  const subdomain = process.env.KOMMO_SUBDOMAIN;
+  const token = process.env.KOMMO_ACCESS_TOKEN;
+  if (!subdomain || !token) {
+    throw new Error(
+      "Kommo nao configurado: defina KOMMO_SUBDOMAIN e KOMMO_ACCESS_TOKEN"
+    );
+  }
+  return { subdomain, token };
+}
+
+function kommoUrl(config: KommoConfig, path: string) {
+  return new URL(`https://${config.subdomain}.kommo.com/api/v4/${path}`);
+}
+
+async function kommoRequest(
+  config: KommoConfig,
+  url: URL,
+  init: RequestInit = {}
+) {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${config.token}`,
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
+    cache: "no-store",
+  });
+
+  if (response.status === 401) {
+    throw new Error(
+      "Kommo recusou o token (401). Gere um novo access token em Kommo > Integracoes."
+    );
+  }
+  if (response.status === 403) {
+    throw new Error(
+      "Kommo negou a operacao (403). Verifique os escopos da integracao."
+    );
+  }
+  return response;
+}
+
+async function kommoGet<T>(
+  config: KommoConfig,
+  path: string,
+  params: Record<string, string | number> = {}
+): Promise<T | null> {
+  const url = kommoUrl(config, path);
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, String(value));
+  }
+
+  const response = await kommoRequest(config, url);
+  // Kommo answers 204 when a collection page is empty.
+  if (response.status === 204) return null;
+  if (!response.ok) {
+    throw new Error(`Kommo ${path} respondeu ${response.status}: ${await response.text()}`);
+  }
+  return (await response.json()) as T;
+}
+
+/** Walks Kommo's paginated collections up to `maxPages`. */
+async function kommoCollection<T>(
+  config: KommoConfig,
+  path: string,
+  embeddedKey: string,
+  params: Record<string, string | number> = {},
+  maxPages = 20
+): Promise<T[]> {
+  const items: T[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const body = await kommoGet<{ _embedded?: Record<string, T[]> }>(config, path, {
+      ...params,
+      page,
+      limit: 250,
+    });
+    const batch = body?._embedded?.[embeddedKey] ?? [];
+    items.push(...batch);
+    if (batch.length < 250) break;
+  }
+  return items;
+}
+
+export function fetchLeads(config: KommoConfig) {
+  return kommoCollection<KommoLead>(config, "leads", "leads", { with: "contacts" });
+}
+
+/** Pipelines with their statuses embedded — the board's real columns. */
+export function fetchPipelines(config: KommoConfig) {
+  return kommoCollection<KommoPipeline>(config, "leads/pipelines", "pipelines");
+}
+
+export function fetchUsers(config: KommoConfig) {
+  return kommoCollection<KommoUser>(config, "users", "users");
+}
+
+export async function fetchContacts(config: KommoConfig, ids: number[]) {
+  const contacts = new Map<number, KommoContact>();
+  if (!ids.length) return contacts;
+
+  // Kommo caps the id filter per request, so batch it.
+  for (let i = 0; i < ids.length; i += 100) {
+    const batch = ids.slice(i, i + 100);
+    const url = kommoUrl(config, "contacts");
+    url.searchParams.set("limit", "250");
+    for (const id of batch) url.searchParams.append("filter[id][]", String(id));
+
+    const response = await kommoRequest(config, url);
+    if (response.status === 204 || !response.ok) continue; // enrichment is best-effort
+    const body = (await response.json()) as {
+      _embedded?: { contacts?: KommoContact[] };
+    };
+    for (const contact of body._embedded?.contacts ?? []) {
+      contacts.set(contact.id, contact);
+    }
+  }
+  return contacts;
+}
+
+export function contactField(contact: KommoContact | undefined, code: "PHONE" | "EMAIL") {
+  const field = contact?.custom_fields_values?.find((f) => f.field_code === code);
+  return field?.values?.[0]?.value ?? null;
+}
+
+/**
+ * Writes a stage change back to Kommo. This is what keeps the board a true
+ * mirror instead of a read-only copy that drifts the moment someone drags a card.
+ */
+export async function moveLeadToStatus(
+  config: KommoConfig,
+  leadId: number,
+  statusId: number,
+  pipelineId?: number
+) {
+  const url = kommoUrl(config, `leads/${leadId}`);
+  const payload: Record<string, number> = { status_id: statusId };
+  if (pipelineId) payload.pipeline_id = pipelineId;
+
+  const response = await kommoRequest(config, url, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Kommo recusou a mudanca de etapa (${response.status}): ${await response.text()}`
+    );
+  }
+  return (await response.json()) as { id: number; status_id: number };
+}
+
+/**
+ * Kommo status ids are account-specific. The board groups by the real status,
+ * but the coarse six-stage funnel is still useful for cross-CRM reporting, so
+ * each status is also projected onto it by its position in its own pipeline.
+ */
+export function buildStatusMapper(statuses: KommoStatus[]) {
+  const openByPipeline = new Map<number, KommoStatus[]>();
+  for (const status of statuses) {
+    if (status.id === WON_STATUS_ID || status.id === LOST_STATUS_ID) continue;
+    const list = openByPipeline.get(status.pipeline_id) ?? [];
+    list.push(status);
+    openByPipeline.set(status.pipeline_id, list);
+  }
+  for (const list of Array.from(openByPipeline.values())) {
+    list.sort((a, b) => a.sort - b.sort);
+  }
+
+  const stages: ReactorStatus[] = [
+    "prospeccao",
+    "qualificacao",
+    "proposta",
+    "fechamento",
+  ];
+
+  return function mapStatus(statusId: number, pipelineId: number) {
+    if (statusId === WON_STATUS_ID) return { status: "ganho" as ReactorStatus, progress: 1 };
+    if (statusId === LOST_STATUS_ID) return { status: "perdido" as ReactorStatus, progress: 0 };
+
+    const list = openByPipeline.get(pipelineId) ?? [];
+    const index = list.findIndex((s) => s.id === statusId);
+    if (index < 0 || list.length === 0) {
+      return { status: "prospeccao" as ReactorStatus, progress: 0.1 };
+    }
+    const progress = list.length === 1 ? 0.5 : index / (list.length - 1);
+    const stage = stages[Math.min(stages.length - 1, Math.round(progress * (stages.length - 1)))];
+    return { status: stage, progress };
+  };
+}
+
+/**
+ * Kommo has no lead score, so The Reactor derives one:
+ * 50% pipeline progress, 30% deal size against the largest open deal,
+ * 20% freshness (decaying to zero over 30 days without an update).
+ */
+export function deriveScore(options: {
+  progress: number;
+  price: number;
+  maxPrice: number;
+  updatedAt: number;
+  now?: number;
+}) {
+  const { progress, price, maxPrice, updatedAt } = options;
+  const now = options.now ?? Date.now();
+  const valueRatio = maxPrice > 0 ? Math.min(price / maxPrice, 1) : 0;
+  const daysSinceUpdate = (now - updatedAt * 1000) / 86_400_000;
+  const freshness = Math.max(0, 1 - daysSinceUpdate / 30);
+  const score = progress * 50 + valueRatio * 30 + freshness * 20;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+/** Kommo returns colours as hex already; fall back to a neutral board grey. */
+export function statusColor(color: string | null | undefined) {
+  return color && /^#[0-9a-f]{3,8}$/i.test(color) ? color : "#d0d4e4";
+}
