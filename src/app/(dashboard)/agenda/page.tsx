@@ -10,6 +10,7 @@ import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/hooks/useApi";
 import { formatCurrency } from "@/lib/utils";
+import { PatientRequestPanel } from "@/components/agenda/PatientRequestPanel";
 
 interface Appointment {
   id: string;
@@ -115,6 +116,8 @@ export default function AgendaPage() {
                 loading={loading}
               />
             </div>
+
+            <PatientRequestPanel />
 
             <Card>
               <CardHeader>
