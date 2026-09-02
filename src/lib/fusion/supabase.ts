@@ -465,6 +465,138 @@ export type Database = {
         };
         Relationships: [];
       };
+      reactor_lead_messages: {
+        Row: {
+          id: string;
+          created_at: string;
+          lead_id: string | null;
+          kommo_lead_id: number | null;
+          kommo_chat_id: string | null;
+          kommo_message_id: string | null;
+          direction: "in" | "out";
+          author_name: string | null;
+          author_kind: "lead" | "agent" | "system";
+          body: string;
+          status: "pending" | "sent" | "delivered" | "read" | "failed";
+          sent_at: string | null;
+          metadata: Json | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          lead_id?: string | null;
+          kommo_lead_id?: number | null;
+          kommo_chat_id?: string | null;
+          kommo_message_id?: string | null;
+          direction: "in" | "out";
+          author_name?: string | null;
+          author_kind?: "lead" | "agent" | "system";
+          body: string;
+          status?: "pending" | "sent" | "delivered" | "read" | "failed";
+          sent_at?: string | null;
+          metadata?: Json | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          lead_id?: string | null;
+          kommo_lead_id?: number | null;
+          kommo_chat_id?: string | null;
+          kommo_message_id?: string | null;
+          direction?: "in" | "out";
+          author_name?: string | null;
+          author_kind?: "lead" | "agent" | "system";
+          body?: string;
+          status?: "pending" | "sent" | "delivered" | "read" | "failed";
+          sent_at?: string | null;
+          metadata?: Json | null;
+        };
+        Relationships: [];
+      };
+      reactor_quick_replies: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          title: string;
+          body: string;
+          category: string;
+          sort: number;
+          active: boolean;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          title: string;
+          body: string;
+          category?: string;
+          sort?: number;
+          active?: boolean;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          title?: string;
+          body?: string;
+          category?: string;
+          sort?: number;
+          active?: boolean;
+        };
+        Relationships: [];
+      };
+      reactor_patient_requests: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          status: "pendente" | "concluido" | "cancelado";
+          patient_name: string;
+          patient_phone: string | null;
+          patient_email: string | null;
+          procedure: string | null;
+          professional: string | null;
+          preferred_at: string | null;
+          notes: string | null;
+          lead_id: string | null;
+          created_by: string | null;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          status?: "pendente" | "concluido" | "cancelado";
+          patient_name: string;
+          patient_phone?: string | null;
+          patient_email?: string | null;
+          procedure?: string | null;
+          professional?: string | null;
+          preferred_at?: string | null;
+          notes?: string | null;
+          lead_id?: string | null;
+          created_by?: string | null;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          status?: "pendente" | "concluido" | "cancelado";
+          patient_name?: string;
+          patient_phone?: string | null;
+          patient_email?: string | null;
+          procedure?: string | null;
+          professional?: string | null;
+          preferred_at?: string | null;
+          notes?: string | null;
+          lead_id?: string | null;
+          created_by?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
@@ -563,3 +695,9 @@ export type ReactorReport =
   Database["public"]["Tables"]["reactor_reports"]["Row"];
 export type ReactorLeadActivity =
   Database["public"]["Tables"]["reactor_lead_activity"]["Row"];
+export type ReactorLeadMessage =
+  Database["public"]["Tables"]["reactor_lead_messages"]["Row"];
+export type ReactorQuickReply =
+  Database["public"]["Tables"]["reactor_quick_replies"]["Row"];
+export type ReactorPatientRequest =
+  Database["public"]["Tables"]["reactor_patient_requests"]["Row"];

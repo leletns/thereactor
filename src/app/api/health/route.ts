@@ -36,6 +36,8 @@ export async function GET() {
     !!process.env.EVOLUTION_API_URL && !!process.env.EVOLUTION_API_KEY;
   const hasKommo =
     !!process.env.KOMMO_SUBDOMAIN && !!process.env.KOMMO_ACCESS_TOKEN;
+  // Feeds .ics públicos por URL — não dependem de credenciais.
+  const hasAmigoClinic = true;
 
   const database = await pingDatabase();
   const status = database.reachable ? "operational" : "degraded";
@@ -73,11 +75,13 @@ export async function GET() {
       supabase_env: supabaseEnv,
       kommo: hasKommo ? "configured" : "missing",
       evolution: hasEvolution ? "configured" : "missing",
+      amigoclinic: hasAmigoClinic ? "configured" : "missing",
     },
     features: {
       ai_chat: hasAI,
       database: database.reachable,
       crm_sync: hasKommo && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      agenda_sync: hasAmigoClinic && !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       whatsapp: hasEvolution,
       a2a_protocol: true,
       mcp_tools: true,

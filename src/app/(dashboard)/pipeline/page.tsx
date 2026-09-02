@@ -16,6 +16,8 @@ import {
   Wallet,
   Target,
   Users,
+  MessageCircle,
+  IdCard,
 } from "lucide-react";
 import { AppTopbar } from "@/components/shell/AppTopbar";
 import { StatTile } from "@/components/shell/StatTile";
@@ -23,7 +25,8 @@ import { DataEmpty, DataError, Skeleton } from "@/components/shell/DataState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/hooks/useApi";
-import { formatCurrency, getRelativeTime } from "@/lib/utils";
+import { formatCurrency, getRelativeTime, cn } from "@/lib/utils";
+import { ChatPanel } from "@/components/messaging/ChatPanel";
 
 interface BoardLead {
   id: string;
@@ -106,6 +109,7 @@ export default function PipelinePage() {
   const [pipelineId, setPipelineId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<BoardLead | null>(null);
+  const [drawerTab, setDrawerTab] = useState<"detalhes" | "mensagens">("detalhes");
   const [syncing, setSyncing] = useState(false);
   const [moving, setMoving] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
@@ -348,7 +352,10 @@ export default function PipelinePage() {
                         return (
                           <article
                             key={lead.id}
-                            onClick={() => setSelected(lead)}
+                            onClick={() => {
+                              setSelected(lead);
+                              setDrawerTab("detalhes");
+                            }}
                             className="group cursor-pointer rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-hairline-strong"
                           >
                             <div className="mb-2.5 flex items-start gap-2.5">
@@ -392,8 +399,19 @@ export default function PipelinePage() {
                               </p>
                             )}
 
-                            {/* Quick move between adjacent columns */}
+                            {/* Quick move between adjacent columns + atalho pra mensagens */}
                             <div className="mt-2.5 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelected(lead);
+                                  setDrawerTab("mensagens");
+                                }}
+                                className="flex h-6 flex-1 items-center justify-center rounded-md border border-hairline text-ink-3 transition-colors hover:border-violet hover:text-violet"
+                                title="Ver mensagens"
+                              >
+                                <MessageCircle className="h-3.5 w-3.5" />
+                              </button>
                               <button
                                 disabled={index === 0 || moving === lead.id}
                                 onClick={(e) => {
@@ -436,8 +454,13 @@ export default function PipelinePage() {
             className="fixed inset-0 z-40 bg-ink/15 backdrop-blur-[2px]"
             onClick={() => setSelected(null)}
           />
-          <aside className="rx-float fixed inset-y-0 right-0 z-50 w-[390px] overflow-y-auto border-l border-hairline bg-surface">
-            <div className="space-y-5 p-6">
+          <aside
+            className={cn(
+              "rx-float fixed inset-y-0 right-0 z-50 flex flex-col border-l border-hairline bg-surface transition-[width]",
+              drawerTab === "mensagens" ? "w-[420px]" : "w-[390px]"
+            )}
+          >
+            <div className="shrink-0 space-y-4 p-6 pb-0">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-pill bg-wash text-[13px] font-medium text-violet-deep">
@@ -458,70 +481,106 @@ export default function PipelinePage() {
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-1.5">
-                {selected.kommo_lead_id ? (
-                  <Badge>Kommo #{selected.kommo_lead_id}</Badge>
-                ) : (
-                  <Badge variant="neutral">Lead local</Badge>
-                )}
-                {selected.kommo_status_name && (
-                  <Badge variant="outline">{selected.kommo_status_name}</Badge>
-                )}
-                {selected.source && <Badge variant="neutral">{selected.source}</Badge>}
-              </div>
-
-              <div className="rx-card divide-y divide-hairline">
-                <Row icon={Wallet} label="Valor" value={formatCurrency(Number(selected.value ?? 0))} />
-                <Row icon={Target} label="Score" value={String(selected.score ?? 0)} />
-                <Row icon={User} label="Responsável" value={selected.responsible_name ?? "—"} />
-                <Row icon={Phone} label="Telefone" value={selected.phone ?? "—"} />
-                <Row icon={Mail} label="E-mail" value={selected.email ?? "—"} />
-                <Row
-                  icon={Clock}
-                  label="Última atividade"
-                  value={getRelativeTime(selected.last_activity_at ?? selected.updated_at)}
-                />
-              </div>
-
-              {selected.notes && (
-                <div className="rx-card p-5">
-                  <p className="rx-eyebrow mb-2">Observações</p>
-                  <p className="text-xs leading-relaxed text-ink-2">{selected.notes}</p>
-                </div>
-              )}
-
-              <div>
-                <p className="rx-eyebrow mb-2.5">Mover para</p>
-                <div className="space-y-1.5">
-                  {columns.map((column) => {
-                    const current =
-                      (column.kommoStatusId !== null &&
-                        column.name === selected.kommo_status_name) ||
-                      (column.kommoStatusId === null && column.key === selected.status);
-                    return (
-                      <button
-                        key={column.key}
-                        disabled={current || moving === selected.id}
-                        onClick={() => moveLead(selected, column)}
-                        className="flex w-full items-center gap-2.5 rounded-pill border border-hairline-strong px-4 py-2 text-left text-[13px] font-medium text-ink transition-colors hover:border-violet hover:text-violet disabled:cursor-default disabled:border-hairline disabled:bg-sunken disabled:text-ink-3"
-                      >
-                        <span
-                          className="h-1.5 w-1.5 shrink-0 rounded-pill"
-                          style={{ background: column.color }}
-                        />
-                        {column.name}
-                        {current && <span className="ml-auto text-2xs text-ink-3">atual</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-                {selected.kommo_lead_id && (
-                  <p className="mt-2.5 text-2xs text-ink-3">
-                    A mudança é gravada no Kommo antes de aparecer aqui.
-                  </p>
-                )}
+              <div className="flex gap-1 rounded-pill bg-sunken p-1">
+                <button
+                  onClick={() => setDrawerTab("detalhes")}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-pill py-1.5 text-[12px] font-medium transition-colors",
+                    drawerTab === "detalhes" ? "bg-surface text-ink" : "text-ink-3"
+                  )}
+                >
+                  <IdCard className="h-3.5 w-3.5" />
+                  Detalhes
+                </button>
+                <button
+                  onClick={() => setDrawerTab("mensagens")}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-pill py-1.5 text-[12px] font-medium transition-colors",
+                    drawerTab === "mensagens" ? "bg-surface text-ink" : "text-ink-3"
+                  )}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  Mensagens
+                </button>
               </div>
             </div>
+
+            {drawerTab === "detalhes" ? (
+              <div className="rx-scroll flex-1 space-y-5 overflow-y-auto p-6">
+                <div className="flex flex-wrap gap-1.5">
+                  {selected.kommo_lead_id ? (
+                    <Badge>Kommo #{selected.kommo_lead_id}</Badge>
+                  ) : (
+                    <Badge variant="neutral">Lead local</Badge>
+                  )}
+                  {selected.kommo_status_name && (
+                    <Badge variant="outline">{selected.kommo_status_name}</Badge>
+                  )}
+                  {selected.source && <Badge variant="neutral">{selected.source}</Badge>}
+                </div>
+
+                <div className="rx-card divide-y divide-hairline">
+                  <Row icon={Wallet} label="Valor" value={formatCurrency(Number(selected.value ?? 0))} />
+                  <Row icon={Target} label="Score" value={String(selected.score ?? 0)} />
+                  <Row icon={User} label="Responsável" value={selected.responsible_name ?? "—"} />
+                  <Row icon={Phone} label="Telefone" value={selected.phone ?? "—"} />
+                  <Row icon={Mail} label="E-mail" value={selected.email ?? "—"} />
+                  <Row
+                    icon={Clock}
+                    label="Última atividade"
+                    value={getRelativeTime(selected.last_activity_at ?? selected.updated_at)}
+                  />
+                </div>
+
+                {selected.notes && (
+                  <div className="rx-card p-5">
+                    <p className="rx-eyebrow mb-2">Observações</p>
+                    <p className="text-xs leading-relaxed text-ink-2">{selected.notes}</p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="rx-eyebrow mb-2.5">Mover para</p>
+                  <div className="space-y-1.5">
+                    {columns.map((column) => {
+                      const current =
+                        (column.kommoStatusId !== null &&
+                          column.name === selected.kommo_status_name) ||
+                        (column.kommoStatusId === null && column.key === selected.status);
+                      return (
+                        <button
+                          key={column.key}
+                          disabled={current || moving === selected.id}
+                          onClick={() => moveLead(selected, column)}
+                          className="flex w-full items-center gap-2.5 rounded-pill border border-hairline-strong px-4 py-2 text-left text-[13px] font-medium text-ink transition-colors hover:border-violet hover:text-violet disabled:cursor-default disabled:border-hairline disabled:bg-sunken disabled:text-ink-3"
+                        >
+                          <span
+                            className="h-1.5 w-1.5 shrink-0 rounded-pill"
+                            style={{ background: column.color }}
+                          />
+                          {column.name}
+                          {current && <span className="ml-auto text-2xs text-ink-3">atual</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {selected.kommo_lead_id && (
+                    <p className="mt-2.5 text-2xs text-ink-3">
+                      A mudança é gravada no Kommo antes de aparecer aqui.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 min-h-0 p-3">
+                <ChatPanel
+                  leadId={selected.id}
+                  leadName={selected.name}
+                  kommoLeadId={selected.kommo_lead_id}
+                  className="h-full"
+                />
+              </div>
+            )}
           </aside>
         </>
       )}

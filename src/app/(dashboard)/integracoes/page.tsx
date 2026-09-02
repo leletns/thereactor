@@ -18,6 +18,7 @@ interface HealthPayload {
     supabase_env: { url: boolean; anonKey: boolean; serviceRoleKey: boolean };
     kommo: string;
     evolution: string;
+    amigoclinic: string;
   };
   features: Record<string, boolean>;
 }
@@ -26,6 +27,12 @@ interface SyncStatus {
   ready: boolean;
   missing: string[];
   subdomain: string | null;
+  lastSync: string | null;
+}
+
+interface AgendaSyncStatus {
+  ready: boolean;
+  calendars: string[];
   lastSync: string | null;
 }
 
@@ -39,6 +46,7 @@ const ENDPOINTS: { method: string; path: string; what: string }[] = [
   { method: "GET", path: "/api/finance/summary", what: "Série mensal, categorias e totais" },
   { method: "GET", path: "/api/transactions", what: "Lançamentos financeiros" },
   { method: "GET", path: "/api/appointments", what: "Agenda e taxa de comparecimento" },
+  { method: "GET/POST", path: "/api/sync/amigoclinic", what: "Status e execucao do espelho da agenda AmigoClinic" },
   { method: "GET", path: "/api/tasks", what: "Tarefas operacionais" },
   { method: "GET/POST", path: "/api/ai/assist", what: "Contexto e respostas do copiloto" },
   { method: "GET/POST", path: "/api/reports", what: "Histórico e geração de relatórios" },
@@ -85,8 +93,11 @@ function IntegrationRow({
 export default function IntegrationsPage() {
   const health = useApi<HealthPayload>("/api/health");
   const sync = useApi<SyncStatus>("/api/sync/kommo");
+  const agendaSync = useApi<AgendaSyncStatus>("/api/sync/amigoclinic");
   const [syncing, setSyncing] = React.useState(false);
   const [notice, setNotice] = React.useState<string | null>(null);
+  const [syncingAgenda, setSyncingAgenda] = React.useState(false);
+  const [agendaNotice, setAgendaNotice] = React.useState<string | null>(null);
 
   const runSync = async () => {
     setSyncing(true);
@@ -105,6 +116,26 @@ export default function IntegrationsPage() {
       setNotice(err instanceof Error ? err.message : String(err));
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const runAgendaSync = async () => {
+    setSyncingAgenda(true);
+    setAgendaNotice(null);
+    try {
+      const response = await fetch("/api/sync/amigoclinic", { method: "POST" });
+      const body = await response.json();
+      setAgendaNotice(
+        body?.ok
+          ? `${body.data.upserted} atendimento(s) espelhados de ${body.data.calendars} agenda(s) da AmigoClinic.`
+          : body?.error ?? "Falha ao sincronizar a agenda."
+      );
+      agendaSync.reload();
+      health.reload();
+    } catch (err) {
+      setAgendaNotice(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSyncingAgenda(false);
     }
   };
 
@@ -164,6 +195,15 @@ export default function IntegrationsPage() {
                     description="Entrada de mensagens de WhatsApp"
                     state={integrations?.evolution ?? "missing"}
                   />
+                  <IntegrationRow
+                    name="AmigoClinic"
+                    description={
+                      agendaSync.data?.calendars?.length
+                        ? `${agendaSync.data.calendars.length} agendas: ${agendaSync.data.calendars.join(", ")}`
+                        : "Espelho da agenda (feeds .ics por profissional)"
+                    }
+                    state={integrations?.amigoclinic ?? "missing"}
+                  />
                 </ul>
               )}
             </CardContent>
@@ -210,6 +250,36 @@ export default function IntegrationsPage() {
 
               {notice && (
                 <p className="rounded-xl border border-hairline bg-wash/40 px-4 py-3 text-[12px] text-ink-2">{notice}</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Agenda AmigoClinic</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-xs leading-relaxed text-ink-2">
+                Puxa os 6 calendarios (.ics) por profissional — Dr. Rafael Erthal, Dra. Lorena,
+                Leonardo Valadao, Soroterapia, Silvana e Fisioterapia — e espelha cada atendimento
+                em reactor_appointments, que alimenta a pagina Agenda.
+              </p>
+
+              {agendaSync.data?.lastSync && (
+                <p className="text-2xs text-ink-3">
+                  Ultima sincronizacao: {new Date(agendaSync.data.lastSync).toLocaleString("pt-BR")}
+                </p>
+              )}
+
+              <Button onClick={runAgendaSync} disabled={syncingAgenda}>
+                {syncingAgenda ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                {syncingAgenda ? "Sincronizando..." : "Sincronizar agora"}
+              </Button>
+
+              {agendaNotice && (
+                <p className="rounded-xl border border-hairline bg-wash/40 px-4 py-3 text-[12px] text-ink-2">
+                  {agendaNotice}
+                </p>
               )}
             </CardContent>
           </Card>
