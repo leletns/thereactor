@@ -118,8 +118,46 @@ async function persistInboundMessage(options: {
   }
 }
 
+/**
+ * O webhook e a unica rota que o middleware deixa passar sem login — o
+ * Evolution nao tem como fazer login. Entao a autenticacao dele e um segredo
+ * combinado, enviado na URL (`?token=...`) ou no cabecalho `x-webhook-token`.
+ *
+ * Sem EVOLUTION_WEBHOOK_TOKEN definido a rota aceita qualquer chamada, e
+ * qualquer um poderia injetar conversa falsa no sistema. Nao bloqueamos nesse
+ * caso para nao derrubar uma instalacao ja em uso, mas o aviso vai para o log
+ * e a tela de Integracoes marca a pendencia.
+ */
+function webhookAuthorized(request: NextRequest): boolean {
+  const expected = process.env.EVOLUTION_WEBHOOK_TOKEN;
+  if (!expected) {
+    console.warn(
+      "[Evolution Webhook] EVOLUTION_WEBHOOK_TOKEN nao definido — a rota esta " +
+        "aceitando qualquer origem. Defina o token e inclua-o na URL do webhook."
+    );
+    return true;
+  }
+  const provided =
+    request.nextUrl.searchParams.get("token") ??
+    request.headers.get("x-webhook-token") ??
+    "";
+  if (provided.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < provided.length; i++) {
+    diff |= provided.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 export async function POST(request: NextRequest) {
   try {
+    if (!webhookAuthorized(request)) {
+      return NextResponse.json(
+        { received: false, error: "unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const payload: EvolutionWebhookPayload = await request.json();
 
     // Only handle incoming messages (not from us)

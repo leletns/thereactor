@@ -48,6 +48,10 @@ export class EvolutionClient {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      // O Next cacheia fetch em disco por padrao. Aqui isso e especialmente
+      // ruim: o estado da conexao ficaria congelado em "close" mesmo depois de
+      // o celular parear, e o QR devolvido poderia ser um ja expirado.
+      cache: "no-store",
     });
 
     if (!response.ok) {

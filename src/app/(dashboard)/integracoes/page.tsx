@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/hooks/useApi";
+import { WhatsAppConnect } from "@/components/integrations/WhatsAppConnect";
 
 interface HealthPayload {
   status: string;
@@ -208,6 +209,8 @@ export default function IntegrationsPage() {
               )}
             </CardContent>
           </Card>
+
+          <WhatsAppConnect />
 
           <Card>
             <CardHeader>

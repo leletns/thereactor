@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   KanbanSquare,
@@ -11,6 +11,7 @@ import {
   FileBarChart,
   Sparkles,
   Plug,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ const NAV = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-[232px] flex-col border-r border-hairline bg-surface">
@@ -72,6 +74,18 @@ export function AppSidebar() {
             <p className="truncate text-[13px] font-medium text-ink">Blue Clínica</p>
             <p className="text-2xs text-ink-3">Comercial</p>
           </div>
+          <button
+            onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" });
+              router.replace("/login");
+              router.refresh();
+            }}
+            title="Sair"
+            aria-label="Sair"
+            className="ml-auto flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-ink-3 transition-colors hover:bg-sunken hover:text-ink"
+          >
+            <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
+          </button>
         </div>
       </div>
     </aside>
