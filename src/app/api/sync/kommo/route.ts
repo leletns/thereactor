@@ -43,9 +43,6 @@ export async function GET() {
     missing,
     subdomain: process.env.KOMMO_SUBDOMAIN ?? null,
     lastSync,
-    // These fields are populated by the POST on sync failure:
-    tokenOk: missing.length === 0 ? null : false,
-    tokenError: null,
   });
 }
 

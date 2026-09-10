@@ -86,8 +86,6 @@ interface SyncStatus {
   missing: string[];
   subdomain: string | null;
   lastSync: string | null;
-  tokenOk: boolean | null;
-  tokenError: string | null;
 }
 
 interface MessagePreview {
