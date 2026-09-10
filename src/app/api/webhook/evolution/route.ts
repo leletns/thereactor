@@ -3,6 +3,8 @@ import { agentRegistry } from "@/lib/nucleus/registry";
 import { broker } from "@/lib/a2a/broker";
 import { createA2AMessage } from "@/lib/a2a/protocol";
 import { generateId } from "@/lib/utils";
+import { getSupabase, getSupabaseAdmin } from "@/lib/fusion/supabase";
+import { matchLeadByPhone, phoneFromJid } from "@/lib/fusion/lead-match";
 
 interface EvolutionWebhookPayload {
   event: string;
@@ -40,6 +42,82 @@ function extractMessageText(payload: EvolutionWebhookPayload): string | null {
   return null;
 }
 
+/**
+ * Grava a mensagem recebida em reactor_lead_messages — é o que alimenta o
+ * preview nos cards do pipeline e a aba "Mensagens".
+ *
+ * Nunca lança: a entrega do WhatsApp não pode depender do banco estar de pé.
+ * Se a gravação falhar, o roteamento para os agentes segue normalmente e o
+ * erro fica no log.
+ */
+async function persistInboundMessage(options: {
+  jid: string;
+  senderName: string;
+  text: string;
+  instance: string;
+  evolutionMessageId: string | null;
+  timestamp: number | null;
+}) {
+  const { jid, senderName, text, instance, evolutionMessageId, timestamp } = options;
+  const phone = phoneFromJid(jid);
+
+  try {
+    const db = getSupabaseAdmin();
+
+    // O Evolution reentrega o mesmo evento quando não recebe 200 a tempo.
+    if (evolutionMessageId) {
+      const { data: existing } = await db
+        .from("reactor_lead_messages")
+        .select("id")
+        .eq("metadata->>evolution_message_id", evolutionMessageId)
+        .limit(1)
+        .maybeSingle();
+      if (existing) return { stored: false, reason: "duplicate" as const };
+    }
+
+    // O telefone do Kommo vem em formato livre, então o casamento acontece em
+    // memória (ver lead-match.ts). São poucos milhares de linhas de uma coluna.
+    const { data: leads, error: leadsError } = await getSupabase()
+      .from("reactor_leads")
+      .select("id, phone, kommo_lead_id")
+      .not("phone", "is", null);
+    if (leadsError) throw new Error(leadsError.message);
+
+    const lead = matchLeadByPhone(leads ?? [], phone);
+
+    const { error } = await db.from("reactor_lead_messages").insert({
+      lead_id: lead?.id ?? null,
+      kommo_lead_id: lead?.kommo_lead_id ?? null,
+      direction: "in",
+      author_kind: "lead",
+      author_name: senderName,
+      body: text,
+      status: "delivered",
+      sent_at: timestamp ? new Date(timestamp * 1000).toISOString() : null,
+      metadata: {
+        source: "evolution",
+        instance,
+        phone,
+        remote_jid: jid,
+        evolution_message_id: evolutionMessageId,
+        // Sem lead casado a mensagem ainda é guardada: o telefone acima permite
+        // ligá-la depois, quando o lead entrar pelo sync. Perder a conversa
+        // seria pior que guardá-la órfã.
+        unmatched: !lead,
+      },
+    });
+    if (error) throw new Error(error.message);
+
+    return { stored: true, leadId: lead?.id ?? null };
+  } catch (error) {
+    console.error(
+      "[Evolution Webhook] Falha ao gravar mensagem:",
+      error instanceof Error ? error.message : error
+    );
+    return { stored: false, reason: "error" as const };
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const payload: EvolutionWebhookPayload = await request.json();
@@ -64,6 +142,17 @@ export async function POST(request: NextRequest) {
     const senderJid = payload.data.key?.remoteJid ?? "unknown";
     const senderName = payload.data.pushName ?? senderJid.split("@")[0];
     const sessionId = generateId();
+
+    // Persistir vem antes do roteamento: é o registro da conversa, e o que
+    // aparece no pipeline. Os agentes rodam em memória e são reconstruíveis.
+    const persisted = await persistInboundMessage({
+      jid: senderJid,
+      senderName,
+      text: messageText,
+      instance: payload.instance,
+      evolutionMessageId: payload.data.key?.id ?? null,
+      timestamp: payload.data.timestamp ?? null,
+    });
 
     // Publish A2A event to responder agent
     const a2aMessage = createA2AMessage(
@@ -116,6 +205,8 @@ export async function POST(request: NextRequest) {
       received: true,
       processed: true,
       sessionId,
+      stored: persisted.stored,
+      leadId: "leadId" in persisted ? persisted.leadId : null,
       message: "Message routed to Responder agent",
     });
   } catch (error) {

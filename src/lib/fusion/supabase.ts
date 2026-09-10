@@ -637,6 +637,22 @@ export function supabaseEnvReport() {
 }
 
 /**
+ * O Next substitui o `fetch` global por uma versao que guarda a resposta em
+ * disco (.next/cache) e a reaproveita nas chamadas seguintes. O supabase-js usa
+ * esse fetch, entao toda leitura vira um retrato congelado: o quadro continua
+ * mostrando o funil de ontem, o card movido volta pro lugar e a mensagem nova
+ * nao aparece — mesmo com o banco correto. Chegamos a ver /api/board responder
+ * o funil inteiro com o banco desligado.
+ *
+ * `dynamic = "force-dynamic"` nas rotas nao cobre isso: ele torna a ROTA
+ * dinamica, mas nao desliga o cache do fetch feito por dentro. Desligar aqui,
+ * na criacao do cliente, vale para toda rota — inclusive as que ainda nao
+ * existem.
+ */
+const noStoreFetch: typeof fetch = (input, init) =>
+  fetch(input, { ...init, cache: "no-store" });
+
+/**
  * Read-only client (anon key). RLS grants SELECT on every reactor_* table,
  * so this is enough for every dashboard read path.
  */
@@ -653,6 +669,7 @@ export function getSupabase() {
   }
   return createClient<Database>(url, anonKey, {
     auth: { persistSession: false },
+    global: { fetch: noStoreFetch },
   });
 }
 
@@ -670,6 +687,7 @@ export function getSupabaseAdmin() {
   }
   return createClient<Database>(url, serviceKey, {
     auth: { persistSession: false },
+    global: { fetch: noStoreFetch },
   });
 }
 
