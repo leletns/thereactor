@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {
   RefreshCw,
   Zap,
@@ -18,6 +18,9 @@ import {
   Users,
   MessageCircle,
   IdCard,
+  ArrowDownLeft,
+  ArrowUpRight,
+  AlertCircle,
 } from "lucide-react";
 import { AppTopbar } from "@/components/shell/AppTopbar";
 import { StatTile } from "@/components/shell/StatTile";
@@ -27,6 +30,8 @@ import { Button } from "@/components/ui/button";
 import { useApi } from "@/lib/hooks/useApi";
 import { formatCurrency, getRelativeTime, cn } from "@/lib/utils";
 import { ChatPanel } from "@/components/messaging/ChatPanel";
+
+// ─── Types ─────────────────────────────────────────────────────────────────
 
 interface BoardLead {
   id: string;
@@ -83,6 +88,15 @@ interface SyncStatus {
   lastSync: string | null;
 }
 
+interface MessagePreview {
+  body: string;
+  direction: "in" | "out";
+  createdAt: string;
+  authorKind: string;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
 function initials(name: string) {
   return (
     name
@@ -105,6 +119,20 @@ function daysSince(iso: string | null) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
 }
 
+function relativeShort(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "agora";
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d`;
+  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
+
 export default function PipelinePage() {
   const [pipelineId, setPipelineId] = useState<number | null>(null);
   const [query, setQuery] = useState("");
@@ -114,9 +142,36 @@ export default function PipelinePage() {
   const [moving, setMoving] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
 
+  // Drag-and-drop state
+  const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
+  const [dragOverColumnKey, setDragOverColumnKey] = useState<string | null>(null);
+  const dragLeadRef = useRef<{ lead: BoardLead; fromColumnKey: string } | null>(null);
+
+  // Message previews for cards
+  const [previews, setPreviews] = useState<Record<string, MessagePreview>>({});
+
   const path = pipelineId ? `/api/board?pipeline=${pipelineId}` : "/api/board";
   const { data, loading, error, reload } = useApi<BoardPayload>(path);
   const syncStatus = useApi<SyncStatus>("/api/sync/kommo");
+
+  // Fetch message previews whenever board data changes
+  useEffect(() => {
+    if (!data) return;
+    const allLeads = data.columns.flatMap((c) => c.leads);
+    if (!allLeads.length) return;
+
+    const ids = allLeads.map((l) => l.id).join(",");
+    fetch(`/api/messages/preview?leadIds=${ids}`)
+      .then((r) => r.json())
+      .then((body) => {
+        if (body?.ok) setPreviews(body.data as Record<string, MessagePreview>);
+      })
+      .catch(() => {/* preview is best-effort */});
+  }, [data]);
+
+  // Auto-suggest sync when Kommo is configured but board hasn't been synced yet
+  const needsFirstSync =
+    syncStatus.data?.ready && !data?.mirrored && !syncStatus.data?.lastSync;
 
   const columns = useMemo(() => {
     if (!data) return [];
@@ -137,7 +192,7 @@ export default function PipelinePage() {
     });
   }, [data, query]);
 
-  const runSync = async () => {
+  const runSync = useCallback(async () => {
     setSyncing(true);
     setNotice(null);
     try {
@@ -158,9 +213,10 @@ export default function PipelinePage() {
       setSyncing(false);
       syncStatus.reload();
     }
-  };
+  }, [reload, syncStatus]);
 
-  const moveLead = async (lead: BoardLead, target: BoardColumn) => {
+  const moveLead = useCallback(async (lead: BoardLead, target: BoardColumn) => {
+    if (moving === lead.id) return;
     setMoving(lead.id);
     setNotice(null);
     try {
@@ -178,7 +234,7 @@ export default function PipelinePage() {
         setNotice({
           tone: "ok",
           text: body.data.syncedToKommo
-            ? `${lead.name} movido para "${target.name}" — replicado no Kommo.`
+            ? `${lead.name} → "${target.name}" — replicado no Kommo ✓`
             : `${lead.name} movido para "${target.name}".`,
         });
         setSelected(null);
@@ -191,7 +247,54 @@ export default function PipelinePage() {
     } finally {
       setMoving(null);
     }
-  };
+  }, [moving, reload]);
+
+  // ─── Drag-and-drop handlers ───────────────────────────────────────────────
+
+  const handleDragStart = useCallback(
+    (e: React.DragEvent, lead: BoardLead, columnKey: string) => {
+      dragLeadRef.current = { lead, fromColumnKey: columnKey };
+      setDraggedLeadId(lead.id);
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", lead.id);
+    },
+    []
+  );
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedLeadId(null);
+    setDragOverColumnKey(null);
+    dragLeadRef.current = null;
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, columnKey: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverColumnKey(columnKey);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent, columnKey: string) => {
+    // Only clear if leaving the column entirely (not entering a child element)
+    const related = e.relatedTarget as HTMLElement | null;
+    if (!related || !(e.currentTarget as HTMLElement).contains(related)) {
+      setDragOverColumnKey((prev) => (prev === columnKey ? null : prev));
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, targetColumn: BoardColumn) => {
+      e.preventDefault();
+      setDragOverColumnKey(null);
+      const ref = dragLeadRef.current;
+      if (!ref) return;
+      const { lead, fromColumnKey } = ref;
+      if (fromColumnKey === targetColumn.key) return; // no-op same column
+      dragLeadRef.current = null;
+      setDraggedLeadId(null);
+      moveLead(lead, targetColumn);
+    },
+    [moveLead]
+  );
 
   const stats = data?.stats;
 
@@ -212,7 +315,13 @@ export default function PipelinePage() {
                 strokeWidth={1.5}
               />
             </Button>
-            <Button size="sm" onClick={runSync} disabled={syncing}>
+            <Button
+              size="sm"
+              onClick={runSync}
+              disabled={syncing}
+              variant={needsFirstSync ? "default" : "outline"}
+              className={needsFirstSync ? "animate-pulse" : ""}
+            >
               <Zap className={`h-3.5 w-3.5 ${syncing ? "animate-pulse" : ""}`} strokeWidth={1.5} />
               {syncing ? "Sincronizando..." : "Sincronizar Kommo"}
             </Button>
@@ -246,28 +355,45 @@ export default function PipelinePage() {
               className="rx-field h-9 w-full pl-10 pr-4 text-[13px]"
             />
           </div>
-
         </div>
 
+        {/* Notices */}
         {notice && (
           <div
-            className={`rounded-xl border px-4 py-3 text-xs ${
+            className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 text-xs ${
               notice.tone === "ok"
                 ? "border-grass/20 bg-grass-soft text-grass"
                 : "border-amber/20 bg-amber-soft text-amber"
             }`}
           >
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             {notice.text}
           </div>
         )}
 
-        {!notice && syncStatus.data && !syncStatus.data.ready && (
+        {/* Kommo vars missing */}
+        {!notice && syncStatus.data && syncStatus.data.missing.length > 0 && (
           <div className="rounded-xl border border-hairline bg-surface px-4 py-3 text-xs text-ink-2">
             Espelho do Kommo inativo — falta configurar{" "}
             <span className="font-semibold text-ink">
               {syncStatus.data.missing.join(", ")}
             </span>
             . O quadro abaixo usa o funil interno enquanto isso.
+          </div>
+        )}
+
+
+        {/* First sync prompt */}
+        {!notice && needsFirstSync && (
+          <div className="flex items-center justify-between rounded-xl border border-violet/20 bg-violet/5 px-4 py-3">
+            <p className="text-xs text-ink-2">
+              <span className="font-semibold text-ink">Kommo configurado!</span>{" "}
+              Faça a primeira sincronização para espelhar seu CRM no pipeline.
+            </p>
+            <Button size="sm" onClick={runSync} disabled={syncing} className="shrink-0">
+              <Zap className="h-3.5 w-3.5" strokeWidth={1.5} />
+              {syncing ? "Sincronizando..." : "Sincronizar agora"}
+            </Button>
           </div>
         )}
 
@@ -323,124 +449,185 @@ export default function PipelinePage() {
               </div>
             ) : (
               <div className="rx-scroll flex gap-4 overflow-x-auto pb-4">
-                {columns.map((column, index) => (
-                  <section key={column.key} className="w-[286px] shrink-0">
-                    <header className="mb-3 flex items-center gap-2">
-                      <span
-                        className="h-2 w-2 rounded-pill"
-                        style={{ background: column.color }}
-                      />
-                      <h2 className="text-[13px] font-semibold text-ink">{column.name}</h2>
-                      <span className="ml-auto rounded-pill border border-hairline-strong px-2 py-0.5 text-2xs font-medium text-ink-2">
-                        {column.count}
-                      </span>
-                    </header>
-                    <p className="mb-3 text-2xs text-ink-3">{formatCurrency(column.value)}</p>
+                {columns.map((column, index) => {
+                  const isDropTarget = dragOverColumnKey === column.key;
+                  return (
+                    <section
+                      key={column.key}
+                      className="w-[286px] shrink-0"
+                      onDragOver={(e) => handleDragOver(e, column.key)}
+                      onDragLeave={(e) => handleDragLeave(e, column.key)}
+                      onDrop={(e) => handleDrop(e, column)}
+                    >
+                      <header className="mb-3 flex items-center gap-2">
+                        <span
+                          className="h-2 w-2 rounded-pill"
+                          style={{ background: column.color }}
+                        />
+                        <h2 className="text-[13px] font-semibold text-ink">{column.name}</h2>
+                        <span className="ml-auto rounded-pill border border-hairline-strong px-2 py-0.5 text-2xs font-medium text-ink-2">
+                          {column.count}
+                        </span>
+                      </header>
+                      <p className="mb-3 text-2xs text-ink-3">{formatCurrency(column.value)}</p>
 
-                    <div className="space-y-2.5">
-                      {column.leads.length === 0 && (
-                        <div className="rounded-xl border border-dashed border-hairline-strong py-10 text-center text-2xs text-ink-3">
-                          Vazio
-                        </div>
-                      )}
+                      <div
+                        className={cn(
+                          "min-h-[120px] space-y-2.5 rounded-xl p-1.5 transition-colors",
+                          isDropTarget
+                            ? "bg-violet/5 ring-1 ring-violet/25"
+                            : "bg-transparent"
+                        )}
+                      >
+                        {column.leads.length === 0 && !isDropTarget && (
+                          <div className="rounded-xl border border-dashed border-hairline-strong py-10 text-center text-2xs text-ink-3">
+                            Vazio
+                          </div>
+                        )}
 
-                      {column.leads.map((lead) => {
-                        const score = Number(lead.score ?? 0);
-                        const tone = scoreTone(score);
-                        const idle = daysSince(lead.last_activity_at ?? lead.updated_at);
+                        {isDropTarget && column.leads.length === 0 && (
+                          <div className="rounded-xl border border-dashed border-violet/30 bg-violet/5 py-10 text-center text-2xs text-violet">
+                            Soltar aqui
+                          </div>
+                        )}
 
-                        return (
-                          <article
-                            key={lead.id}
-                            onClick={() => {
-                              setSelected(lead);
-                              setDrawerTab("detalhes");
-                            }}
-                            className="group cursor-pointer rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-hairline-strong"
-                          >
-                            <div className="mb-2.5 flex items-start gap-2.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill border border-hairline-strong text-2xs font-medium text-ink-2">
-                                {initials(lead.name)}
-                              </span>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[13px] font-medium text-ink">
-                                  {lead.name}
-                                </p>
-                                <p className="truncate text-2xs text-ink-3">
-                                  {lead.company ?? lead.source ?? "—"}
-                                </p>
-                              </div>
-                              <span
-                                className={`rounded-pill px-2 py-0.5 text-2xs font-medium ${tone.bg} ${tone.fg}`}
-                              >
-                                {score}
-                              </span>
-                            </div>
+                        {column.leads.map((lead) => {
+                          const score = Number(lead.score ?? 0);
+                          const tone = scoreTone(score);
+                          const idle = daysSince(lead.last_activity_at ?? lead.updated_at);
+                          const preview = previews[lead.id];
+                          const isDragging = draggedLeadId === lead.id;
 
-                            <div className="flex items-center justify-between">
-                              <span className="rx-numeric text-[13px] font-semibold text-ink">
-                                {formatCurrency(Number(lead.value ?? 0))}
-                              </span>
-                              {idle !== null && (
-                                <span
-                                  className={`flex items-center gap-1 text-2xs ${
-                                    idle >= 3 ? "text-amber" : "text-ink-3"
-                                  }`}
-                                >
-                                  <Clock className="h-3 w-3" />
-                                  {idle === 0 ? "hoje" : `${idle}d`}
-                                </span>
+                          return (
+                            <article
+                              key={lead.id}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, lead, column.key)}
+                              onDragEnd={handleDragEnd}
+                              onClick={() => {
+                                if (isDragging) return;
+                                setSelected(lead);
+                                setDrawerTab("detalhes");
+                              }}
+                              className={cn(
+                                "group cursor-grab rounded-xl border border-hairline bg-surface p-4 transition-all",
+                                "hover:border-hairline-strong hover:shadow-sm active:cursor-grabbing",
+                                isDragging && "opacity-40 scale-95",
+                                isDropTarget && !isDragging && "translate-x-0"
                               )}
-                            </div>
+                            >
+                              {/* Header: avatar + name + score */}
+                              <div className="mb-2.5 flex items-start gap-2.5">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill border border-hairline-strong text-2xs font-medium text-ink-2">
+                                  {initials(lead.name)}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-[13px] font-medium text-ink">
+                                    {lead.name}
+                                  </p>
+                                  <p className="truncate text-2xs text-ink-3">
+                                    {lead.company ?? lead.source ?? "—"}
+                                  </p>
+                                </div>
+                                <span
+                                  className={`rounded-pill px-2 py-0.5 text-2xs font-medium ${tone.bg} ${tone.fg}`}
+                                >
+                                  {score}
+                                </span>
+                              </div>
 
-                            {lead.responsible_name && (
-                              <p className="mt-2 truncate text-2xs text-ink-3">
-                                {lead.responsible_name}
-                              </p>
-                            )}
+                              {/* Message preview */}
+                              {preview ? (
+                                <div className="mb-2.5 rounded-lg border border-hairline bg-wash px-3 py-2">
+                                  <div className="mb-1 flex items-center gap-1.5">
+                                    {preview.direction === "in" ? (
+                                      <ArrowDownLeft className="h-3 w-3 shrink-0 text-violet" />
+                                    ) : (
+                                      <ArrowUpRight className="h-3 w-3 shrink-0 text-ink-3" />
+                                    )}
+                                    <span className="text-2xs text-ink-3">
+                                      {preview.direction === "in" ? "Lead" : "Equipe"}
+                                    </span>
+                                    <span className="ml-auto text-2xs text-ink-3">
+                                      {relativeShort(preview.createdAt)}
+                                    </span>
+                                  </div>
+                                  <p className="line-clamp-2 text-2xs leading-relaxed text-ink-2">
+                                    {preview.body}
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="mb-2.5 rounded-lg border border-dashed border-hairline bg-sunken px-3 py-2 text-center text-2xs text-ink-3">
+                                  Sem mensagens
+                                </div>
+                              )}
 
-                            {/* Quick move between adjacent columns + atalho pra mensagens */}
-                            <div className="mt-2.5 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelected(lead);
-                                  setDrawerTab("mensagens");
-                                }}
-                                className="flex h-6 flex-1 items-center justify-center rounded-md border border-hairline text-ink-3 transition-colors hover:border-violet hover:text-violet"
-                                title="Ver mensagens"
-                              >
-                                <MessageCircle className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                disabled={index === 0 || moving === lead.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  moveLead(lead, columns[index - 1]);
-                                }}
-                                className="flex h-6 flex-1 items-center justify-center rounded-md border border-hairline text-ink-3 transition-colors hover:border-violet hover:text-violet disabled:opacity-30 disabled:hover:border-hairline disabled:hover:text-ink-3"
-                                title="Etapa anterior"
-                              >
-                                <ChevronLeft className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                disabled={index === columns.length - 1 || moving === lead.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  moveLead(lead, columns[index + 1]);
-                                }}
-                                className="flex h-6 flex-1 items-center justify-center rounded-md border border-hairline text-ink-3 transition-colors hover:border-violet hover:text-violet disabled:opacity-30 disabled:hover:border-hairline disabled:hover:text-ink-3"
-                                title="Próxima etapa"
-                              >
-                                <ChevronRight className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ))}
+                              {/* Footer: value + idle */}
+                              <div className="flex items-center justify-between">
+                                <span className="rx-numeric text-[13px] font-semibold text-ink">
+                                  {formatCurrency(Number(lead.value ?? 0))}
+                                </span>
+                                {idle !== null && (
+                                  <span
+                                    className={`flex items-center gap-1 text-2xs ${
+                                      idle >= 3 ? "text-amber" : "text-ink-3"
+                                    }`}
+                                  >
+                                    <Clock className="h-3 w-3" />
+                                    {idle === 0 ? "hoje" : `${idle}d`}
+                                  </span>
+                                )}
+                              </div>
+
+                              {lead.responsible_name && (
+                                <p className="mt-1.5 truncate text-2xs text-ink-3">
+                                  {lead.responsible_name}
+                                </p>
+                              )}
+
+                              {/* Hover actions */}
+                              <div className="mt-2.5 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelected(lead);
+                                    setDrawerTab("mensagens");
+                                  }}
+                                  className="flex h-6 flex-1 items-center justify-center rounded-md border border-hairline text-ink-3 transition-colors hover:border-violet hover:text-violet"
+                                  title="Ver conversa completa"
+                                >
+                                  <MessageCircle className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  disabled={index === 0 || moving === lead.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    moveLead(lead, columns[index - 1]);
+                                  }}
+                                  className="flex h-6 flex-1 items-center justify-center rounded-md border border-hairline text-ink-3 transition-colors hover:border-violet hover:text-violet disabled:opacity-30 disabled:hover:border-hairline disabled:hover:text-ink-3"
+                                  title="Etapa anterior"
+                                >
+                                  <ChevronLeft className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  disabled={index === columns.length - 1 || moving === lead.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    moveLead(lead, columns[index + 1]);
+                                  }}
+                                  className="flex h-6 flex-1 items-center justify-center rounded-md border border-hairline text-ink-3 transition-colors hover:border-violet hover:text-violet disabled:opacity-30 disabled:hover:border-hairline disabled:hover:text-ink-3"
+                                  title="Próxima etapa"
+                                >
+                                  <ChevronRight className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                })}
               </div>
             )}
           </>
@@ -501,6 +688,9 @@ export default function PipelinePage() {
                 >
                   <MessageCircle className="h-3.5 w-3.5" />
                   Mensagens
+                  {previews[selected.id] && (
+                    <span className="ml-0.5 h-1.5 w-1.5 rounded-pill bg-violet" />
+                  )}
                 </button>
               </div>
             </div>
@@ -518,6 +708,38 @@ export default function PipelinePage() {
                   )}
                   {selected.source && <Badge variant="neutral">{selected.source}</Badge>}
                 </div>
+
+                {/* Last message preview in drawer */}
+                {previews[selected.id] && (
+                  <div className="rounded-xl border border-hairline bg-wash p-4">
+                    <p className="rx-eyebrow mb-2.5 flex items-center gap-1.5">
+                      <MessageCircle className="h-3 w-3" />
+                      Última mensagem
+                    </p>
+                    <div className="flex items-start gap-2">
+                      {previews[selected.id].direction === "in" ? (
+                        <ArrowDownLeft className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet" />
+                      ) : (
+                        <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-3" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs leading-relaxed text-ink-2">
+                          {previews[selected.id].body}
+                        </p>
+                        <p className="mt-1.5 text-2xs text-ink-3">
+                          {previews[selected.id].direction === "in" ? "Lead · " : "Equipe · "}
+                          {relativeShort(previews[selected.id].createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setDrawerTab("mensagens")}
+                      className="mt-3 text-2xs font-medium text-violet hover:underline"
+                    >
+                      Ver conversa completa →
+                    </button>
+                  </div>
+                )}
 
                 <div className="rx-card divide-y divide-hairline">
                   <Row icon={Wallet} label="Valor" value={formatCurrency(Number(selected.value ?? 0))} />
