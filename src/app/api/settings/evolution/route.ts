@@ -1,13 +1,20 @@
 import { NextRequest } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { apiOk, apiFail } from "@/lib/api";
-import { getSupabaseAdmin } from "@/lib/fusion/supabase";
 
 export const dynamic = "force-dynamic";
 
-/** GET — retorna status atual da config da Evolution API */
+function getSettingsDb() {
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  return createClient(url, serviceKey, { auth: { persistSession: false } });
+}
+
+/** GET â retorna status atual da config da Evolution API */
 export async function GET() {
   try {
-    const db = getSupabaseAdmin();
+    const db = getSettingsDb();
     const { data } = await db
       .from("reactor_settings")
       .select("key, value")
@@ -16,21 +23,27 @@ export async function GET() {
     const settingsMap = Object.fromEntries(
       (data ?? []).map((r: { key: string; value: string }) => [r.key, r.value])
     );
-    const url = settingsMap["EVOLUTION_API_URL"] || process.env.EVOLUTION_API_URL || null;
-    const key = settingsMap["EVOLUTION_API_KEY"] || process.env.EVOLUTION_API_KEY || null;
+    const url =
+      settingsMap["EVOLUTION_API_URL"] || process.env.EVOLUTION_API_URL || null;
+    const key =
+      settingsMap["EVOLUTION_API_KEY"] || process.env.EVOLUTION_API_KEY || null;
 
     return apiOk({
       configured: !!(url && key),
       url: url ? url.replace(/\/+$/, "") : null,
       hasKey: !!key,
-      source: settingsMap["EVOLUTION_API_URL"] ? "database" : (url ? "env" : "none"),
+      source: settingsMap["EVOLUTION_API_URL"]
+        ? "database"
+        : url
+        ? "env"
+        : "none",
     });
   } catch (err) {
     return apiFail(err);
   }
 }
 
-/** POST — salva a config da Evolution API no Supabase */
+/** POST â salva a config da Evolution API no Supabase */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -38,10 +51,10 @@ export async function POST(req: NextRequest) {
     const key: string | undefined = body?.key?.trim();
 
     if (!url || !key) {
-      return apiFail("url e key são obrigatórios", 400);
+      return apiFail("url e key sÃ£o obrigatÃ³rios", 400);
     }
 
-    const db = getSupabaseAdmin();
+    const db = getSettingsDb();
     const now = new Date().toISOString();
 
     await db.from("reactor_settings").upsert([
@@ -55,10 +68,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** DELETE — remove a config da Evolution API do Supabase */
+/** DELETE â remove a config da Evolution API do Supabase */
 export async function DELETE() {
   try {
-    const db = getSupabaseAdmin();
+    const db = getSettingsDb();
     await db
       .from("reactor_settings")
       .delete()
@@ -67,4 +80,4 @@ export async function DELETE() {
   } catch (err) {
     return apiFail(err);
   }
-        }
+}
