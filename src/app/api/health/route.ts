@@ -1,8 +1,8 @@
 import { agentRegistry } from "@/lib/nucleus/registry";
 import { apiOk } from "@/lib/api";
+import { createClient } from "@supabase/supabase-js";
 import {
   getSupabase,
-  getSupabaseAdmin,
   isSupabaseConfigured,
   supabaseEnvReport,
 } from "@/lib/fusion/supabase";
@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 
 /** Actually round-trips to Postgres instead of only checking env vars. */
 async function pingDatabase() {
-  if (!isSupabaseConfigured()) return { reachable: false, detail: "env vars ausentes" };
+  if (!isSupabaseConfigured())
+    return { reachable: false, detail: "env vars ausentes" };
   try {
     const { error } = await getSupabase()
       .from("reactor_leads")
@@ -29,20 +30,31 @@ async function pingDatabase() {
 /** Checks Evolution API config: DB first, then env vars as fallback. */
 async function checkEvolutionConfig(): Promise<boolean> {
   try {
-    const db = getSupabaseAdmin();
-    const { data } = await db
-      .from("reactor_settings")
-      .select("key, value")
-      .in("key", ["EVOLUTION_API_URL", "EVOLUTION_API_KEY"]);
+    const url =
+      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    if (url && serviceKey) {
+      const db = createClient(url, serviceKey, {
+        auth: { persistSession: false },
+      });
+      const { data } = await db
+        .from("reactor_settings")
+        .select("key, value")
+        .in("key", ["EVOLUTION_API_URL", "EVOLUTION_API_KEY"]);
 
-    if (data && data.length === 2) {
-      const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
-      if (map["EVOLUTION_API_URL"] && map["EVOLUTION_API_KEY"]) return true;
+      if (data && data.length === 2) {
+        const map = Object.fromEntries(
+          (data as { key: string; value: string }[]).map((r) => [r.key, r.value])
+        );
+        if (map["EVOLUTION_API_URL"] && map["EVOLUTION_API_KEY"]) return true;
+      }
     }
   } catch {
     // Fall through to env var check
   }
-  return !!process.env.EVOLUTION_API_URL && !!process.env.EVOLUTION_API_KEY;
+  return (
+    !!process.env.EVOLUTION_API_URL && !!process.env.EVOLUTION_API_KEY
+  );
 }
 
 export async function GET() {
