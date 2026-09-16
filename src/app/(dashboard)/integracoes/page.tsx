@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, XCircle, AlertCircle, Zap, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Zap, Loader2, Settings, Copy } from "lucide-react";
 import { AppTopbar } from "@/components/shell/AppTopbar";
 import { DataError, Skeleton } from "@/components/shell/DataState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,29 +36,37 @@ interface AgendaSyncStatus {
   lastSync: string | null;
 }
 
-/** Every public door of the system, so nothing has to be reverse-engineered. */
+interface EvolutionSettings {
+  configured: boolean;
+  url: string | null;
+  hasKey: boolean;
+  source: string;
+}
+
+const WEBHOOK_URL = "https://thereactor.vercel.app/api/webhook/evolution";
+
 const ENDPOINTS: { method: string; path: string; what: string }[] = [
-  { method: "GET", path: "/api/health", what: "Status do sistema e das integrações" },
+  { method: "GET", path: "/api/health", what: "Status do sistema e das integraÃ§Ãµes" },
   { method: "GET", path: "/api/board", what: "Quadro do pipeline com as colunas do Kommo" },
   { method: "POST", path: "/api/leads/move", what: "Move um lead de etapa e grava no Kommo" },
-  { method: "GET", path: "/api/leads", what: "Leads e métricas do funil" },
-  { method: "GET/POST", path: "/api/sync/kommo", what: "Status e execução do espelho do Kommo" },
-  { method: "GET", path: "/api/finance/summary", what: "Série mensal, categorias e totais" },
-  { method: "GET", path: "/api/transactions", what: "Lançamentos financeiros" },
+  { method: "GET", path: "/api/leads", what: "Leads e mÃ©tricas do funil" },
+  { method: "GET/POST", path: "/api/sync/kommo", what: "Status e execuÃ§Ã£o do espelho do Kommo" },
+  { method: "GET", path: "/api/finance/summary", what: "SÃ©rie mensal, categorias e totais" },
+  { method: "GET", path: "/api/transactions", what: "LanÃ§amentos financeiros" },
   { method: "GET", path: "/api/appointments", what: "Agenda e taxa de comparecimento" },
   { method: "GET/POST", path: "/api/sync/amigoclinic", what: "Status e execucao do espelho da agenda AmigoClinic" },
   { method: "GET", path: "/api/tasks", what: "Tarefas operacionais" },
   { method: "GET/POST", path: "/api/ai/assist", what: "Contexto e respostas do copiloto" },
-  { method: "GET/POST", path: "/api/reports", what: "Histórico e geração de relatórios" },
+  { method: "GET/POST", path: "/api/reports", what: "HistÃ³rico e geraÃ§Ã£o de relatÃ³rios" },
   { method: "POST", path: "/api/webhook/evolution", what: "Entrada de mensagens do WhatsApp" },
 ];
 
 const STATE: Record<string, { icon: typeof CheckCircle2; tone: string; label: string }> = {
   connected: { icon: CheckCircle2, tone: "text-grass", label: "Conectado" },
   configured: { icon: CheckCircle2, tone: "text-grass", label: "Configurado" },
-  unreachable: { icon: XCircle, tone: "text-rose", label: "Inacessível" },
+  unreachable: { icon: XCircle, tone: "text-rose", label: "InacessÃ­vel" },
   demo_mode: { icon: AlertCircle, tone: "text-amber", label: "Modo local" },
-  missing: { icon: XCircle, tone: "text-ink-3", label: "Não configurado" },
+  missing: { icon: XCircle, tone: "text-ink-3", label: "NÃ£o configurado" },
 };
 
 function IntegrationRow({
@@ -66,11 +74,13 @@ function IntegrationRow({
   description,
   state,
   detail,
+  onConfigure,
 }: {
   name: string;
   description: string;
   state: string;
   detail?: string | null;
+  onConfigure?: () => void;
 }) {
   const config = STATE[state] ?? STATE.missing;
   const Icon = config.icon;
@@ -83,9 +93,17 @@ function IntegrationRow({
         <p className="text-2xs text-ink-3">{description}</p>
         {detail && <p className="mt-1 text-2xs text-rose">{detail}</p>}
       </div>
-      <Badge variant={state === "connected" || state === "configured" ? "success" : "neutral"}>
-        {config.label}
-      </Badge>
+      <div className="flex items-center gap-2">
+        {onConfigure && state === "missing" && (
+          <Button size="sm" variant="ghost" onClick={onConfigure} className="h-7 px-2 text-2xs">
+            <Settings className="mr-1 h-3 w-3" />
+            Configurar
+          </Button>
+        )}
+        <Badge variant={state === "connected" || state === "configured" ? "success" : "neutral"}>
+          {config.label}
+        </Badge>
+      </div>
     </li>
   );
 }
@@ -94,21 +112,33 @@ export default function IntegrationsPage() {
   const health = useApi<HealthPayload>("/api/health");
   const sync = useApi<SyncStatus>("/api/sync/kommo");
   const agendaSync = useApi<AgendaSyncStatus>("/api/sync/amigoclinic");
+  const evolutionSettings = useApi<EvolutionSettings>("/api/settings/evolution");
+
   const [syncing, setSyncing] = React.useState(false);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [syncingAgenda, setSyncingAgenda] = React.useState(false);
   const [agendaNotice, setAgendaNotice] = React.useState<string | null>(null);
+
+  // Evolution API config state
+  const [showEvolutionConfig, setShowEvolutionConfig] = React.useState(false);
+  const [evolutionUrl, setEvolutionUrl] = React.useState("");
+  const [evolutionKey, setEvolutionKey] = React.useState("");
+  const [savingEvolution, setSavingEvolution] = React.useState(false);
+  const [evolutionNotice, setEvolutionNotice] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
 
   const runSync = async () => {
     setSyncing(true);
     setNotice(null);
     try {
       const response = await fetch("/api/sync/kommo", { method: "POST" });
-      const body = await response.json();
+      // Safely parse JSON â the function can timeout and return plain text
+      let body: Record<string, unknown> | null = null;
+      try { body = await response.json(); } catch { /* not JSON */ }
       setNotice(
         body?.ok
-          ? `${body.data.synced} lead(s), ${body.data.pipelines} pipeline(s) e ${body.data.statuses} etapa(s) espelhados.`
-          : body?.error ?? "Falha ao sincronizar."
+          ? `${(body.data as { synced: number; pipelines: number; statuses: number }).synced} lead(s), ${(body.data as { synced: number; pipelines: number; statuses: number }).pipelines} pipeline(s) e ${(body.data as { synced: number; pipelines: number; statuses: number }).statuses} etapa(s) espelhados.`
+          : (body?.error as string) ?? "Falha ao sincronizar."
       );
       sync.reload();
       health.reload();
@@ -124,11 +154,12 @@ export default function IntegrationsPage() {
     setAgendaNotice(null);
     try {
       const response = await fetch("/api/sync/amigoclinic", { method: "POST" });
-      const body = await response.json();
+      let body: Record<string, unknown> | null = null;
+      try { body = await response.json(); } catch { /* not JSON */ }
       setAgendaNotice(
         body?.ok
-          ? `${body.data.upserted} atendimento(s) espelhados de ${body.data.calendars} agenda(s) da AmigoClinic.`
-          : body?.error ?? "Falha ao sincronizar a agenda."
+          ? `${(body.data as { upserted: number; calendars: number }).upserted} atendimento(s) espelhados de ${(body.data as { upserted: number; calendars: number }).calendars} agenda(s) da AmigoClinic.`
+          : (body?.error as string) ?? "Falha ao sincronizar a agenda."
       );
       agendaSync.reload();
       health.reload();
@@ -139,11 +170,53 @@ export default function IntegrationsPage() {
     }
   };
 
+  const saveEvolutionConfig = async () => {
+    if (!evolutionUrl.trim() || !evolutionKey.trim()) {
+      setEvolutionNotice("Preencha a URL e a API Key.");
+      return;
+    }
+    setSavingEvolution(true);
+    setEvolutionNotice(null);
+    try {
+      const res = await fetch("/api/settings/evolution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: evolutionUrl.trim(), key: evolutionKey.trim() }),
+      });
+      const body = await res.json();
+      if (body?.ok) {
+        setEvolutionNotice("â ConfiguraÃ§Ã£o salva! Recarregando status...");
+        setEvolutionUrl("");
+        setEvolutionKey("");
+        setTimeout(() => {
+          setShowEvolutionConfig(false);
+          setEvolutionNotice(null);
+          health.reload();
+          evolutionSettings.reload();
+        }, 1500);
+      } else {
+        setEvolutionNotice(body?.error ?? "Erro ao salvar.");
+      }
+    } catch (err) {
+      setEvolutionNotice(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSavingEvolution(false);
+    }
+  };
+
+  const copyWebhook = () => {
+    navigator.clipboard.writeText(WEBHOOK_URL).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   const integrations = health.data?.integrations;
+  const evolutionMissing = integrations?.evolution === "missing";
 
   return (
     <>
-      <AppTopbar title="Integrações" subtitle="Portas de entrada e saída do Reactor" />
+      <AppTopbar title="IntegraÃ§Ãµes" subtitle="Portas de entrada e saÃ­da do Reactor" />
 
       <div className="flex-1 space-y-6 p-9">
         {health.error && <DataError message={health.error} onRetry={health.reload} />}
@@ -151,7 +224,7 @@ export default function IntegrationsPage() {
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Conexões</CardTitle>
+              <CardTitle>ConexÃµes</CardTitle>
             </CardHeader>
             <CardContent className="p-0 pb-2">
               {health.loading ? (
@@ -166,9 +239,9 @@ export default function IntegrationsPage() {
                     name="Supabase"
                     description={
                       integrations?.supabase_env
-                        ? `URL ${integrations.supabase_env.url ? "ok" : "faltando"} · anon key ${
+                        ? `URL ${integrations.supabase_env.url ? "ok" : "faltando"} Â· anon key ${
                             integrations.supabase_env.anonKey ? "ok" : "faltando"
-                          } · service role ${
+                          } Â· service role ${
                             integrations.supabase_env.serviceRoleKey ? "ok" : "faltando"
                           }`
                         : "Banco de dados e origem de tudo que aparece na tela"
@@ -187,13 +260,18 @@ export default function IntegrationsPage() {
                   />
                   <IntegrationRow
                     name="Motor de IA (Groq)"
-                    description="Redação do copiloto e dos resumos executivos"
+                    description="RedaÃ§Ã£o do copiloto e dos resumos executivos"
                     state={integrations?.ai_engine ?? "missing"}
                   />
                   <IntegrationRow
                     name="Evolution API"
-                    description="Entrada de mensagens de WhatsApp"
+                    description={
+                      evolutionSettings.data?.url
+                        ? evolutionSettings.data.url
+                        : "Entrada de mensagens de WhatsApp"
+                    }
                     state={integrations?.evolution ?? "missing"}
+                    onConfigure={() => setShowEvolutionConfig(true)}
                   />
                   <IntegrationRow
                     name="AmigoClinic"
@@ -218,12 +296,12 @@ export default function IntegrationsPage() {
                 <Skeleton className="h-24" />
               ) : sync.data?.ready ? (
                 <p className="text-xs leading-relaxed text-ink-2">
-                  Tudo configurado. Cada sincronização traz pipelines, etapas com cores, leads,
-                  responsáveis e contatos — e mover um card aqui grava a etapa no Kommo.
+                  Tudo configurado. Cada sincronizaÃ§Ã£o traz pipelines, etapas com cores, leads,
+                  responsÃ¡veis e contatos â e mover um card aqui grava a etapa no Kommo.
                 </p>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-xs text-ink-2">Faltam variáveis de ambiente:</p>
+                  <p className="text-xs text-ink-2">Faltam variÃ¡veis de ambiente:</p>
                   <ul className="space-y-1">
                     {(sync.data?.missing ?? []).map((key) => (
                       <li
@@ -239,7 +317,7 @@ export default function IntegrationsPage() {
 
               {sync.data?.lastSync && (
                 <p className="text-2xs text-ink-3">
-                  Última sincronização: {new Date(sync.data.lastSync).toLocaleString("pt-BR")}
+                  Ãltima sincronizaÃ§Ã£o: {new Date(sync.data.lastSync).toLocaleString("pt-BR")}
                 </p>
               )}
 
@@ -254,14 +332,101 @@ export default function IntegrationsPage() {
             </CardContent>
           </Card>
 
+          {/* Evolution API Configuration Panel */}
+          {(showEvolutionConfig || evolutionMissing) && !health.loading && (
+            <Card className={showEvolutionConfig ? "border-violet-deep/30 ring-1 ring-violet-deep/20" : ""}>
+              <CardHeader>
+                <CardTitle>
+                  {showEvolutionConfig ? "Configurar Evolution API" : "Evolution API â WhatsApp"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!showEvolutionConfig ? (
+                  <>
+                    <p className="text-xs leading-relaxed text-ink-2">
+                      Conecte o WhatsApp da clÃ­nica para receber mensagens diretamente no Reactor.
+                      VocÃª precisa de uma instÃ¢ncia da Evolution API rodando (Railway, VPS, etc.).
+                    </p>
+                    <Button onClick={() => setShowEvolutionConfig(true)}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Configurar agora
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-ink-2">
+                      Insira a URL base e a API Key da sua instÃ¢ncia da Evolution API.
+                    </p>
+
+                    <div className="space-y-2">
+                      <label className="text-2xs font-medium text-ink">URL da Evolution API</label>
+                      <input
+                        type="url"
+                        value={evolutionUrl}
+                        onChange={(e) => setEvolutionUrl(e.target.value)}
+                        placeholder="https://sua-evolution-api.com"
+                        className="w-full rounded-lg border border-hairline-strong bg-wash px-3 py-2 font-mono text-xs text-ink placeholder-ink-4 focus:outline-none focus:ring-1 focus:ring-violet-deep"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-2xs font-medium text-ink">API Key</label>
+                      <input
+                        type="password"
+                        value={evolutionKey}
+                        onChange={(e) => setEvolutionKey(e.target.value)}
+                        placeholder="â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢â¢"
+                        className="w-full rounded-lg border border-hairline-strong bg-wash px-3 py-2 font-mono text-xs text-ink placeholder-ink-4 focus:outline-none focus:ring-1 focus:ring-violet-deep"
+                      />
+                    </div>
+
+                    <div className="rounded-lg border border-hairline bg-wash/60 px-4 py-3 space-y-1">
+                      <p className="text-2xs font-medium text-ink">Webhook URL do Reactor</p>
+                      <p className="text-2xs text-ink-3 mb-2">Configure este endpoint na sua instÃ¢ncia Evolution API:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 rounded bg-sunken px-2 py-1 font-mono text-2xs text-violet-deep break-all">
+                          {WEBHOOK_URL}
+                        </code>
+                        <button
+                          onClick={copyWebhook}
+                          className="shrink-0 rounded p-1 text-ink-3 hover:text-ink"
+                          title="Copiar"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      {copied && <p className="text-2xs text-grass">Copiado!</p>}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button onClick={saveEvolutionConfig} disabled={savingEvolution}>
+                        {savingEvolution ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {savingEvolution ? "Salvando..." : "Salvar configuraÃ§Ã£o"}
+                      </Button>
+                      <Button variant="ghost" onClick={() => { setShowEvolutionConfig(false); setEvolutionNotice(null); }}>
+                        Cancelar
+                      </Button>
+                    </div>
+
+                    {evolutionNotice && (
+                      <p className="rounded-xl border border-hairline bg-wash/40 px-4 py-3 text-[12px] text-ink-2">
+                        {evolutionNotice}
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Agenda AmigoClinic</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs leading-relaxed text-ink-2">
-                Puxa os 6 calendarios (.ics) por profissional — Dr. Rafael Erthal, Dra. Lorena,
-                Leonardo Valadao, Soroterapia, Silvana e Fisioterapia — e espelha cada atendimento
+                Puxa os 6 calendarios (.ics) por profissional â Dr. Rafael Erthal, Dra. Lorena,
+                Leonardo Valadao, Soroterapia, Silvana e Fisioterapia â e espelha cada atendimento
                 em reactor_appointments, que alimenta a pagina Agenda.
               </p>
 
@@ -297,7 +462,7 @@ export default function IntegrationsPage() {
               <code className="rounded bg-sunken px-1 py-0.5 font-mono">
                 {`{ ok: false, error }`}
               </code>
-              , então qualquer automação externa consegue tratar erro sem adivinhar.
+              , entÃ£o qualquer automaÃ§Ã£o externa consegue tratar erro sem adivinhar.
             </p>
           </CardHeader>
           <CardContent className="p-0 pb-2">
