@@ -2,6 +2,7 @@ import { agentRegistry } from "@/lib/nucleus/registry";
 import { apiOk } from "@/lib/api";
 import {
   getSupabase,
+  getSupabaseAdmin,
   isSupabaseConfigured,
   supabaseEnvReport,
 } from "@/lib/fusion/supabase";
@@ -25,6 +26,25 @@ async function pingDatabase() {
   }
 }
 
+/** Checks Evolution API config: DB first, then env vars as fallback. */
+async function checkEvolutionConfig(): Promise<boolean> {
+  try {
+    const db = getSupabaseAdmin();
+    const { data } = await db
+      .from("reactor_settings")
+      .select("key, value")
+      .in("key", ["EVOLUTION_API_URL", "EVOLUTION_API_KEY"]);
+
+    if (data && data.length === 2) {
+      const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
+      if (map["EVOLUTION_API_URL"] && map["EVOLUTION_API_KEY"]) return true;
+    }
+  } catch {
+    // Fall through to env var check
+  }
+  return !!process.env.EVOLUTION_API_URL && !!process.env.EVOLUTION_API_KEY;
+}
+
 export async function GET() {
   const agents = agentRegistry.getAll();
   const onlineAgents = agents.filter((a) => a.status !== "offline");
@@ -32,11 +52,10 @@ export async function GET() {
   const hasAI = !!process.env.GROQ_API_KEY;
   const supabaseEnv = supabaseEnvReport();
   const hasSupabase = supabaseEnv.url && supabaseEnv.anonKey;
-  const hasEvolution =
-    !!process.env.EVOLUTION_API_URL && !!process.env.EVOLUTION_API_KEY;
+  const hasEvolution = await checkEvolutionConfig();
   const hasKommo =
     !!process.env.KOMMO_SUBDOMAIN && !!process.env.KOMMO_ACCESS_TOKEN;
-  // Feeds .ics públicos por URL — não dependem de credenciais.
+  // Feeds .ics pÃºblicos por URL â nÃ£o dependem de credenciais.
   const hasAmigoClinic = true;
 
   const database = await pingDatabase();
